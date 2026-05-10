@@ -1,0 +1,77 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+
+import { getApiUser } from "@/lib/api-auth";
+import { enqueueNotebookProcessing } from "@/lib/ingestion/local-queue";
+import { prisma } from "@/lib/prisma";
+
+const paramsSchema = z.object({
+  notebookId: z.string().min(1)
+});
+
+const bodySchema = z
+  .object({
+    force: z.boolean().optional()
+  })
+  .optional();
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ notebookId: string }> }
+) {
+  const user = await getApiUser();
+
+  if (!user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const parsedParams = paramsSchema.safeParse(await params);
+
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: "Invalid notebook." }, { status: 400 });
+  }
+
+  const notebook = await prisma.notebook.findFirst({
+    where: {
+      id: parsedParams.data.notebookId,
+      userId: user.id
+    },
+    select: {
+      id: true,
+      status: true
+    }
+  });
+
+  const url = new URL(request.url);
+  const parsedBody = bodySchema.safeParse(await readJsonBody(request));
+  const force =
+    url.searchParams.get("force") === "true" ||
+    (parsedBody.success && parsedBody.data?.force === true);
+
+  if (!notebook) {
+    return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
+  }
+
+  if (notebook.status === "READY" && !force) {
+    return NextResponse.json({
+      notebookId: notebook.id,
+      status: notebook.status
+    });
+  }
+
+  const result = await enqueueNotebookProcessing({
+    notebookId: notebook.id,
+    userId: user.id,
+    force
+  });
+
+  return NextResponse.json(result);
+}
+
+async function readJsonBody(request: Request) {
+  try {
+    return await request.json();
+  } catch {
+    return undefined;
+  }
+}

@@ -1,0 +1,703 @@
+import {
+  type EvidenceSourceType,
+  type Job,
+  type Notebook,
+  type NotebookStatus,
+  type Prisma
+} from "@prisma/client";
+
+import {
+  normalizeVideoError,
+  VideoProcessingError,
+  type VideoErrorType
+} from "@/lib/video-errors";
+import { prisma } from "@/lib/prisma";
+import {
+  processWithWorker,
+  type WorkerProcessResult
+} from "@/lib/worker/client";
+import { fetchYouTubeMetadata, type YouTubeMetadata } from "@/lib/youtube/metadata";
+import {
+  fetchTranscriptSegments,
+  type TranscriptSegment
+} from "@/lib/youtube/transcript";
+import { parseYouTubeUrl } from "@/lib/youtube/url";
+
+const DEFAULT_MAX_VIDEO_DURATION_SEC = 3 * 60 * 60;
+const FRESH_PROCESSING_WINDOW_MS = 15 * 60 * 1000;
+
+const fallbackEligibleErrors = new Set<VideoErrorType>([
+  "NO_CAPTIONS",
+  "TRANSCRIPT_UNAVAILABLE",
+  "NETWORK_ERROR",
+  "RATE_LIMITED",
+  "UNSUPPORTED_URL"
+]);
+
+type IngestionEngine = "node" | "worker" | "hybrid";
+
+type NotebookForProcessing = Notebook & {
+  jobs: Job[];
+  _count: {
+    evidenceSegments: number;
+  };
+};
+
+type EvidenceRowInput = {
+  notebookId: string;
+  videoId: string;
+  startSec: number;
+  endSec: number;
+  text: string;
+  sourceType: EvidenceSourceType;
+  confidence: number;
+  language?: string | null;
+  extractionEngine?: string | null;
+  rawSource?: string | null;
+};
+
+type IngestionSuccess = {
+  engine: IngestionEngine | "worker-fallback";
+  engineLabel: string;
+  fallbackUsed: boolean;
+  asrUsed: boolean;
+  metadata: YouTubeMetadata;
+  segments: Array<{
+    startSec: number;
+    endSec: number;
+    text: string;
+    sourceType: EvidenceSourceType;
+    confidence: number;
+    language?: string | null;
+    extractionEngine?: string | null;
+    rawSource?: string | null;
+  }>;
+  diagnostics?: Prisma.InputJsonValue;
+};
+
+export type ProcessNotebookVideoOptions = {
+  force?: boolean;
+};
+
+export type ProcessNotebookVideoResult = {
+  notebookId: string;
+  status: NotebookStatus;
+  videoId?: string | null;
+  segmentCount?: number;
+  errorType?: string | null;
+  errorMessage?: string | null;
+};
+
+export async function processNotebookVideo(
+  notebookId: string,
+  userId: string,
+  options: ProcessNotebookVideoOptions = {}
+): Promise<ProcessNotebookVideoResult> {
+  const startedAt = Date.now();
+  const notebook = await prisma.notebook.findFirst({
+    where: { id: notebookId, userId },
+    include: {
+      jobs: {
+        orderBy: { updatedAt: "desc" },
+        take: 1
+      },
+      _count: {
+        select: { evidenceSegments: true }
+      }
+    }
+  });
+
+  if (!notebook) {
+    throw new VideoProcessingError({
+      type: "UNKNOWN",
+      technicalMessage: `Notebook ${notebookId} was not found for user.`
+    });
+  }
+
+  if (notebook.status === "READY" && !options.force) {
+    return {
+      notebookId,
+      status: notebook.status,
+      videoId: notebook.videoId,
+      segmentCount: notebook._count.evidenceSegments
+    };
+  }
+
+  if (
+    options.force &&
+    notebook.status === "FAILED" &&
+    (notebook.jobs[0]?.attempts ?? 0) >= getRetryLimit()
+  ) {
+    return {
+      notebookId,
+      status: notebook.status,
+      videoId: notebook.videoId,
+      errorType: notebook.errorType,
+      errorMessage: notebook.errorMessage
+    };
+  }
+
+  const runningJob = notebook.jobs.find((job) => job.status === "RUNNING");
+  const isFreshRunningJob =
+    runningJob &&
+    Date.now() - runningJob.updatedAt.getTime() < FRESH_PROCESSING_WINDOW_MS;
+
+  if (notebook.status === "PROCESSING" && isFreshRunningJob && !options.force) {
+    return {
+      notebookId,
+      status: notebook.status,
+      videoId: notebook.videoId,
+      errorType: notebook.errorType,
+      errorMessage: notebook.errorMessage
+    };
+  }
+
+  let job: Job | null = null;
+
+  try {
+    await prisma.notebook.update({
+      where: { id: notebookId },
+      data: {
+        status: "PROCESSING",
+        errorType: null,
+        errorMessage: null
+      }
+    });
+
+    job = await prisma.job.create({
+      data: {
+        notebookId,
+        type: "YOUTUBE_INGESTION",
+        status: "RUNNING",
+        progress: 5,
+        currentStep: "Validating YouTube URL",
+        attempts: (notebook.jobs[0]?.attempts ?? 0) + 1,
+        startedAt: new Date(),
+        metadata: {
+          engine: getIngestionEngine(),
+          engineLabel: "YouTube captions"
+        }
+      }
+    });
+
+    logIngestionEvent("started", {
+      notebookId,
+      userId,
+      jobId: job.id,
+      engine: getIngestionEngine(),
+      step: "Validating YouTube URL"
+    });
+
+    const parsedUrl = parseYouTubeUrl(notebook.sourceUrl);
+    const maxDurationSeconds = getMaxVideoDurationSeconds();
+
+    await updateNotebookAndJob({
+      notebookId,
+      jobId: job.id,
+      progress: 10,
+      currentStep: "Reading video details",
+      notebookData: {
+        videoId: parsedUrl.videoId,
+        sourceUrl: parsedUrl.normalizedUrl
+      }
+    });
+
+    const result = await runIngestionStrategy({
+      notebook,
+      job,
+      parsedUrl,
+      maxDurationSeconds
+    });
+
+    await updateJob(job.id, {
+      progress: 90,
+      currentStep: "Saving grounded evidence",
+      metadata: buildJobMetadata(result)
+    });
+
+    const evidenceRows = result.segments.map((segment) => ({
+      notebookId,
+      videoId: result.metadata.videoId,
+      startSec: segment.startSec,
+      endSec: segment.endSec,
+      text: segment.text,
+      sourceType: segment.sourceType,
+      confidence: segment.confidence,
+      language: segment.language ?? null,
+      extractionEngine: segment.extractionEngine ?? null,
+      rawSource: segment.rawSource ?? null
+    })) satisfies EvidenceRowInput[];
+
+    await prisma.$transaction([
+      prisma.evidenceSegment.deleteMany({
+        where: { notebookId }
+      }),
+      prisma.evidenceSegment.createMany({
+        data: evidenceRows
+      }),
+      prisma.notebook.update({
+        where: { id: notebookId },
+        data: {
+          title: result.metadata.title,
+          videoId: result.metadata.videoId,
+          sourceUrl: result.metadata.normalizedUrl,
+          videoTitle: result.metadata.title,
+          thumbnailUrl: result.metadata.thumbnailUrl,
+          durationSec: result.metadata.durationSec ?? null,
+          status: "READY",
+          errorType: null,
+          errorMessage: null
+        }
+      }),
+      prisma.job.update({
+        where: { id: job.id },
+        data: {
+          status: "SUCCEEDED",
+          progress: 100,
+          currentStep: "Ready",
+          finishedAt: new Date(),
+          errorType: null,
+          errorMessage: null,
+          metadata: buildJobMetadata(result)
+        }
+      })
+    ]);
+
+    logIngestionEvent("completed", {
+      notebookId,
+      userId,
+      videoId: result.metadata.videoId,
+      jobId: job.id,
+      engine: result.engine,
+      step: "Ready",
+      durationMs: Date.now() - startedAt,
+      segmentCount: evidenceRows.length
+    });
+
+    return {
+      notebookId,
+      status: "READY",
+      videoId: result.metadata.videoId,
+      segmentCount: evidenceRows.length
+    };
+  } catch (error) {
+    const safeError = normalizeVideoError(error);
+
+    logIngestionEvent("failed", {
+      notebookId,
+      userId,
+      videoId: notebook.videoId,
+      jobId: job?.id,
+      engine: getIngestionEngine(),
+      step: job?.currentStep ?? "Unknown",
+      durationMs: Date.now() - startedAt,
+      errorType: safeError.type
+    });
+
+    await prisma.notebook.update({
+      where: { id: notebookId },
+      data: {
+        status: "FAILED",
+        errorType: safeError.type,
+        errorMessage: safeError.userMessage
+      }
+    });
+
+    if (job) {
+      await updateJob(job.id, {
+        status: "FAILED",
+        progress: 100,
+        currentStep: safeError.userTitle,
+        errorType: safeError.type,
+        errorMessage: safeError.userMessage,
+        finishedAt: new Date(),
+        metadata: {
+          ...(toRecord(job.metadata) ?? {}),
+          errorType: safeError.type,
+          retryable: safeError.retryable,
+          retryLimit: getRetryLimit()
+        }
+      });
+    }
+
+    return {
+      notebookId,
+      status: "FAILED",
+      errorType: safeError.type,
+      errorMessage: safeError.userMessage
+    };
+  }
+}
+
+async function runIngestionStrategy({
+  notebook,
+  job,
+  parsedUrl,
+  maxDurationSeconds
+}: {
+  notebook: NotebookForProcessing;
+  job: Job;
+  parsedUrl: ReturnType<typeof parseYouTubeUrl>;
+  maxDurationSeconds: number;
+}): Promise<IngestionSuccess> {
+  const engine = getIngestionEngine();
+
+  if (engine === "node") {
+    return runNodeCaptionIngestion({
+      notebook,
+      job,
+      parsedUrl,
+      maxDurationSeconds
+    });
+  }
+
+  if (engine === "worker") {
+    return runWorkerIngestion({
+      notebook,
+      job,
+      parsedUrl,
+      maxDurationSeconds,
+      fallbackUsed: false
+    });
+  }
+
+  try {
+    return await runNodeCaptionIngestion({
+      notebook,
+      job,
+      parsedUrl,
+      maxDurationSeconds
+    });
+  } catch (error) {
+    const safeError = normalizeVideoError(error);
+
+    if (!canFallbackToWorker(safeError.type)) {
+      throw safeError;
+    }
+
+    await updateJob(job.id, {
+      progress: 45,
+      currentStep: "Caption path unavailable, preparing fallback",
+      errorType: null,
+      errorMessage: null,
+      metadata: {
+        engine: "hybrid",
+        engineLabel: "Advanced worker",
+        fallbackUsed: true,
+        nodeErrorType: safeError.type
+      }
+    });
+
+    return runWorkerIngestion({
+      notebook,
+      job,
+      parsedUrl,
+      maxDurationSeconds,
+      fallbackUsed: true
+    });
+  }
+}
+
+async function runNodeCaptionIngestion({
+  notebook,
+  job,
+  parsedUrl,
+  maxDurationSeconds
+}: {
+  notebook: NotebookForProcessing;
+  job: Job;
+  parsedUrl: ReturnType<typeof parseYouTubeUrl>;
+  maxDurationSeconds: number;
+}): Promise<IngestionSuccess> {
+  const metadata = await fetchYouTubeMetadata({
+    videoId: parsedUrl.videoId,
+    normalizedUrl: parsedUrl.normalizedUrl
+  });
+
+  if (metadata.isLive) {
+    throw new VideoProcessingError({
+      type: "LIVE_STREAM_ACTIVE",
+      technicalMessage: "Metadata marked video as actively live."
+    });
+  }
+
+  if (
+    metadata.durationSec !== undefined &&
+    metadata.durationSec > maxDurationSeconds
+  ) {
+    throw new VideoProcessingError({
+      type: "VIDEO_TOO_LONG",
+      technicalMessage: `Duration ${metadata.durationSec}s exceeds ${maxDurationSeconds}s.`
+    });
+  }
+
+  await updateNotebookAndJob({
+    notebookId: notebook.id,
+    jobId: job.id,
+    progress: 20,
+    currentStep: "Checking existing captions",
+    notebookData: {
+      title: metadata.title,
+      videoTitle: metadata.title,
+      thumbnailUrl: metadata.thumbnailUrl,
+      durationSec: metadata.durationSec ?? null
+    }
+  });
+
+  const transcript = await fetchTranscriptSegments({
+    videoId: parsedUrl.videoId,
+    preferredLanguage: notebook.language
+  });
+
+  await updateJob(job.id, {
+    progress: 35,
+    currentStep: "Building caption transcript",
+    metadata: {
+      engine: "node",
+      engineLabel: "YouTube captions"
+    }
+  });
+
+  return {
+    engine: "node",
+    engineLabel: "YouTube captions",
+    fallbackUsed: false,
+    asrUsed: false,
+    metadata,
+    segments: transcript.map((segment) =>
+      mapNodeTranscriptSegment(segment, notebook.language)
+    ),
+    diagnostics: {
+      engine: "node-transcript",
+      segmentCount: transcript.length
+    }
+  };
+}
+
+async function runWorkerIngestion({
+  notebook,
+  job,
+  parsedUrl,
+  maxDurationSeconds,
+  fallbackUsed
+}: {
+  notebook: NotebookForProcessing;
+  job: Job;
+  parsedUrl: ReturnType<typeof parseYouTubeUrl>;
+  maxDurationSeconds: number;
+  fallbackUsed: boolean;
+}): Promise<IngestionSuccess> {
+  if (!isWorkerEnabled()) {
+    throw new VideoProcessingError({
+      type: "WORKER_UNAVAILABLE",
+      technicalMessage: "ENABLE_YTDLP_WORKER is false."
+    });
+  }
+
+  await updateJob(job.id, {
+    progress: 55,
+    currentStep: "Contacting processing worker",
+    metadata: {
+      engine: fallbackUsed ? "worker-fallback" : "worker",
+      engineLabel: "Advanced worker",
+      fallbackUsed
+    }
+  });
+
+  const workerResult = await processWithWorker({
+    notebookId: notebook.id,
+    videoUrl: parsedUrl.normalizedUrl,
+    videoId: parsedUrl.videoId,
+    preferredLanguage: notebook.language,
+    allowAsrFallback: isAzureSpeechFallbackEnabled(),
+    maxDurationSeconds
+  });
+
+  if (workerResult.diagnostics.asrUsed) {
+    await updateJob(job.id, {
+      progress: 80,
+      currentStep: "Transcribing audio",
+      metadata: {
+        engine: fallbackUsed ? "worker-fallback" : "worker",
+        engineLabel: "Azure Speech fallback",
+        fallbackUsed,
+        asrUsed: true
+      }
+    });
+  }
+
+  const metadata = mapWorkerMetadata(workerResult);
+  const sourceType = workerResult.segments[0]?.sourceType ?? "CAPTION";
+  const asrUsed = workerResult.diagnostics.asrUsed || sourceType === "ASR";
+
+  return {
+    engine: fallbackUsed ? "worker-fallback" : "worker",
+    engineLabel: asrUsed ? "Azure Speech fallback" : "Advanced worker",
+    fallbackUsed,
+    asrUsed,
+    metadata,
+    segments: workerResult.segments.map((segment) => ({
+      startSec: segment.startSec,
+      endSec: segment.endSec,
+      text: segment.text,
+      sourceType: segment.sourceType,
+      confidence: segment.confidence,
+      language: segment.language ?? notebook.language,
+      extractionEngine: segment.extractionEngine,
+      rawSource: segment.rawSource
+    })),
+    diagnostics: workerResult.diagnostics as Prisma.InputJsonValue
+  };
+}
+
+function mapNodeTranscriptSegment(
+  segment: TranscriptSegment,
+  language: string
+): IngestionSuccess["segments"][number] {
+  const isAutoCaption = segment.sourceType === "AUTO_CAPTION";
+
+  return {
+    startSec: segment.startSec,
+    endSec: segment.endSec,
+    text: segment.text,
+    sourceType: segment.sourceType,
+    confidence: segment.confidence,
+    language,
+    extractionEngine: "node-transcript",
+    rawSource: isAutoCaption ? "auto-caption" : "manual-caption"
+  };
+}
+
+function mapWorkerMetadata(workerResult: WorkerProcessResult): YouTubeMetadata {
+  return {
+    videoId: workerResult.metadata.videoId,
+    title: workerResult.metadata.title,
+    author: workerResult.metadata.author ?? undefined,
+    thumbnailUrl:
+      workerResult.metadata.thumbnailUrl ??
+      `https://i.ytimg.com/vi/${workerResult.metadata.videoId}/hqdefault.jpg`,
+    durationSec: workerResult.metadata.durationSec ?? undefined,
+    isLive: workerResult.metadata.isLive,
+    normalizedUrl: workerResult.metadata.normalizedUrl
+  };
+}
+
+function buildJobMetadata(result: IngestionSuccess): Prisma.InputJsonValue {
+  const firstSegment = result.segments[0];
+  return {
+    engine: result.engine,
+    engineLabel: result.engineLabel,
+    sourceType: firstSegment?.sourceType ?? null,
+    sourceLabel: getSourceLabel(firstSegment?.sourceType),
+    language: firstSegment?.language ?? null,
+    extractionEngine: firstSegment?.extractionEngine ?? null,
+    rawSource: firstSegment?.rawSource ?? null,
+    asrUsed: result.asrUsed,
+    fallbackUsed: result.fallbackUsed,
+    segmentCount: result.segments.length,
+    diagnostics: result.diagnostics ?? null
+  };
+}
+
+function getSourceLabel(sourceType?: EvidenceSourceType | null) {
+  if (sourceType === "ASR") {
+    return "Azure Speech transcription";
+  }
+
+  if (sourceType === "AUTO_CAPTION") {
+    return "YouTube auto-captions";
+  }
+
+  return "YouTube captions";
+}
+
+function getIngestionEngine(): IngestionEngine {
+  const value = process.env.INGESTION_ENGINE?.trim().toLowerCase();
+
+  if (value === "node" || value === "worker" || value === "hybrid") {
+    return value;
+  }
+
+  return "hybrid";
+}
+
+function getMaxVideoDurationSeconds() {
+  const parsed = Number(process.env.MAX_VIDEO_DURATION_SECONDS);
+  return Number.isFinite(parsed) && parsed > 0
+    ? Math.round(parsed)
+    : DEFAULT_MAX_VIDEO_DURATION_SEC;
+}
+
+function isAzureSpeechFallbackEnabled() {
+  return process.env.ENABLE_AZURE_SPEECH_FALLBACK !== "false";
+}
+
+function isWorkerEnabled() {
+  return process.env.ENABLE_YTDLP_WORKER !== "false";
+}
+
+function getRetryLimit() {
+  const parsed = Number(process.env.INGESTION_RETRY_LIMIT);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 2;
+}
+
+function canFallbackToWorker(errorType: VideoErrorType) {
+  return isWorkerEnabled() && fallbackEligibleErrors.has(errorType);
+}
+
+async function updateNotebookAndJob({
+  notebookId,
+  jobId,
+  progress,
+  currentStep,
+  notebookData
+}: {
+  notebookId: string;
+  jobId: string;
+  progress: number;
+  currentStep: string;
+  notebookData: Prisma.NotebookUpdateInput;
+}) {
+  await prisma.$transaction([
+    prisma.notebook.update({
+      where: { id: notebookId },
+      data: notebookData
+    }),
+    prisma.job.update({
+      where: { id: jobId },
+      data: {
+        progress,
+        currentStep
+      }
+    })
+  ]);
+}
+
+async function updateJob(
+  jobId: string,
+  data: Prisma.JobUpdateInput
+) {
+  await prisma.job.update({
+    where: { id: jobId },
+    data
+  });
+}
+
+function toRecord(value: Prisma.JsonValue | null) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, Prisma.JsonValue>)
+    : null;
+}
+
+function logIngestionEvent(
+  event: string,
+  fields: Record<string, string | number | null | undefined>
+) {
+  console.info(
+    "[youtube:process]",
+    JSON.stringify({
+      event,
+      ...fields
+    })
+  );
+}
