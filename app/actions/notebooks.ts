@@ -9,15 +9,6 @@ import { isVideoProcessingError } from "@/lib/video-errors";
 import { newNotebookSchema } from "@/lib/validators";
 import { parseYouTubeUrl } from "@/lib/youtube/url";
 
-const defaultArtifacts = [
-  "OUTLINE",
-  "SUMMARY_SHORT",
-  "STUDY_GUIDE",
-  "FLASHCARDS",
-  "QUIZ",
-  "MIND_MAP"
-] as const;
-
 export type CreateNotebookState = {
   error?: string;
 };
@@ -57,14 +48,7 @@ export async function createNotebook(
       videoId: parsedUrl.videoId,
       language: parsed.data.language,
       status: "PENDING",
-      title: `YouTube lecture ${parsedUrl.videoId}`,
-      artifacts: {
-        create: defaultArtifacts.map((type) => ({
-          type,
-          language: parsed.data.language,
-          status: "EMPTY"
-        }))
-      }
+      title: `YouTube lecture ${parsedUrl.videoId}`
     },
     select: {
       id: true

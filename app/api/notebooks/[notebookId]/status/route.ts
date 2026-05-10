@@ -65,10 +65,15 @@ export async function GET(
           id: latestJob.id,
           status: latestJob.status,
           progress: latestJob.progress,
+          progressPercent: latestJob.progressPercent,
           currentStep: latestJob.currentStep,
           errorType: latestJob.errorType,
           errorMessage: latestJob.errorMessage,
+          errorCode: latestJob.errorCode,
+          safeErrorMessage: latestJob.safeErrorMessage,
           attempts: latestJob.attempts,
+          attemptCount: latestJob.attemptCount,
+          maxAttempts: latestJob.maxAttempts,
           metadata: latestJob.metadata
         }
       : null

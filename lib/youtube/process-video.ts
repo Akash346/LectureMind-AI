@@ -167,11 +167,15 @@ export async function processNotebookVideo(
     job = await prisma.job.create({
       data: {
         notebookId,
+        userId,
         type: "YOUTUBE_INGESTION",
         status: "RUNNING",
         progress: 5,
+        progressPercent: 5,
         currentStep: "Validating YouTube URL",
         attempts: (notebook.jobs[0]?.attempts ?? 0) + 1,
+        attemptCount: (notebook.jobs[0]?.attempts ?? 0) + 1,
+        maxAttempts: getRetryLimit(),
         startedAt: new Date(),
         metadata: {
           engine: getIngestionEngine(),
@@ -254,10 +258,13 @@ export async function processNotebookVideo(
         data: {
           status: "SUCCEEDED",
           progress: 100,
+          progressPercent: 100,
           currentStep: "Ready",
           finishedAt: new Date(),
           errorType: null,
           errorMessage: null,
+          errorCode: null,
+          safeErrorMessage: null,
           metadata: buildJobMetadata(result)
         }
       })
@@ -307,9 +314,12 @@ export async function processNotebookVideo(
       await updateJob(job.id, {
         status: "FAILED",
         progress: 100,
+        progressPercent: 100,
         currentStep: safeError.userTitle,
         errorType: safeError.type,
         errorMessage: safeError.userMessage,
+        errorCode: safeError.type,
+        safeErrorMessage: safeError.userMessage,
         finishedAt: new Date(),
         metadata: {
           ...(toRecord(job.metadata) ?? {}),
@@ -667,6 +677,7 @@ async function updateNotebookAndJob({
       where: { id: jobId },
       data: {
         progress,
+        progressPercent: progress,
         currentStep
       }
     })
@@ -677,9 +688,22 @@ async function updateJob(
   jobId: string,
   data: Prisma.JobUpdateInput
 ) {
+  const progress =
+    typeof data.progress === "number"
+      ? data.progress
+      : typeof data.progress === "object" &&
+          data.progress &&
+          "set" in data.progress &&
+          typeof data.progress.set === "number"
+        ? data.progress.set
+        : null;
+
   await prisma.job.update({
     where: { id: jobId },
-    data
+    data: {
+      ...data,
+      ...(progress !== null ? { progressPercent: progress } : {})
+    }
   });
 }
 

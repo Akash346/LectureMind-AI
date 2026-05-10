@@ -43,6 +43,7 @@ enum JobStatus {
   RUNNING
   SUCCEEDED
   FAILED
+  CANCELLED
 }
 
 enum EvidenceSourceType {
@@ -61,6 +62,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   notebooks     Notebook[]
+  jobs          Job[]
   chatMessages  ChatMessage[]
   preference    UserPreference?
 }
@@ -127,14 +129,20 @@ model Notebook {
 }
 
 model Artifact {
-  id         String         @id @default(cuid())
-  notebookId String
-  type       ArtifactType
-  language   String         @default("en")
-  json       Json?
-  status     ArtifactStatus @default(EMPTY)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id                 String         @id @default(cuid())
+  notebookId         String
+  type               ArtifactType
+  language           String         @default("en")
+  json               Json?
+  status             ArtifactStatus @default(EMPTY)
+  errorType          String?
+  errorMessage       String?
+  generatedBy        String?
+  verifiedAt         DateTime?
+  sourceSegmentCount Int?
+  metadata           Json?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   notebook Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
 
@@ -158,24 +166,33 @@ model ChatMessage {
 }
 
 model Job {
-  id           String    @id @default(cuid())
-  notebookId   String
-  type         String
-  status       JobStatus @default(QUEUED)
-  progress     Int       @default(0)
-  currentStep  String?
-  errorType    String?
-  errorMessage String?
-  attempts     Int       @default(0)
-  startedAt    DateTime?
-  finishedAt   DateTime?
-  metadata     Json?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  notebookId       String
+  userId           String?
+  type             String
+  status           JobStatus @default(QUEUED)
+  progress         Int       @default(0)
+  progressPercent  Int       @default(0)
+  currentStep      String?
+  errorType        String?
+  errorMessage     String?
+  errorCode        String?
+  safeErrorMessage String?
+  attempts         Int       @default(0)
+  attemptCount     Int       @default(0)
+  maxAttempts      Int       @default(2)
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  metadata         Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   notebook Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([notebookId, status])
+  @@index([userId, status])
+  @@index([type, status])
 }
 
 model EvidenceSegment {
@@ -190,11 +207,19 @@ model EvidenceSegment {
   language         String?
   extractionEngine String?
   rawSource        String?
+  embeddingStatus  String             @default("PENDING")
+  embeddingModel   String?
+  embeddingErrorCode String?
+  embeddingErrorMessage String?
+  indexedAt        DateTime?
+  searchDocumentId String?
   createdAt        DateTime           @default(now())
 
   notebook Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
 
   @@index([notebookId, startSec])
+  @@index([notebookId, embeddingStatus])
+  @@index([notebookId, indexedAt])
   @@index([videoId])
 }
 

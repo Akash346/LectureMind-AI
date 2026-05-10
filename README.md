@@ -1,8 +1,8 @@
 # LectureMind AI
 
-LectureMind AI is a NotebookLM-inspired lecture study workspace. Phase 3 keeps the working Phase 2 YouTube caption ingestion path and adds an advanced Python worker fallback for production-grade metadata, caption, subtitle, audio, and Azure Speech processing.
+LectureMind AI is a NotebookLM-inspired lecture study workspace. Phase 5 keeps the working Phase 2/3 YouTube ingestion and Phase 4 artifact generation, then adds durable jobs, embeddings, Azure AI Search indexing, safe retrieval fallback, and source-grounded chat.
 
-No Azure OpenAI, summaries, flashcards, quizzes, mind maps, embeddings, Azure AI Search, or generated answers run yet.
+Audio/video overviews, reports, slide decks, and Canvas/faculty/provost workflows are still later phases.
 
 ## Stack
 
@@ -14,6 +14,9 @@ No Azure OpenAI, summaries, flashcards, quizzes, mind maps, embeddings, Azure AI
 - Zod validation
 - Server-side YouTube metadata and caption ingestion
 - Optional FastAPI worker with yt-dlp, ffmpeg audio prep, and Azure Speech fallback
+- Azure OpenAI artifact generation with Zod validation and verifier checks
+- Azure OpenAI embeddings and Azure AI Search hybrid retrieval
+- Source-grounded chat with deterministic citation verification
 - Zustand for workspace pane state
 
 ## Local Setup
@@ -49,9 +52,30 @@ ENABLE_AZURE_SPEECH_FALLBACK="true"
 ENABLE_YTDLP_WORKER="true"
 INGESTION_RETRY_LIMIT="2"
 WORKER_SHARED_SECRET=""
+
+AZURE_OPENAI_ENDPOINT=""
+AZURE_OPENAI_API_KEY=""
+AZURE_OPENAI_DEPLOYMENT_FAST=""
+AZURE_OPENAI_DEPLOYMENT_STRONG=""
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=""
+AZURE_OPENAI_EMBEDDING_DIMENSIONS="1536"
+AZURE_OPENAI_API_VERSION="2024-10-21"
+DEBUG_AI="false"
+
+AZURE_SEARCH_ENDPOINT=""
+AZURE_SEARCH_API_KEY=""
+AZURE_SEARCH_INDEX_NAME="lecturemind-evidence-dev"
 ```
 
+`AZURE_SEARCH_INDEX_NAME` is preferred and defaults to `lecturemind-evidence-dev` only when neither index variable exists. The legacy `AZURE_AI_SEARCH_ENDPOINT`, `AZURE_AI_SEARCH_API_KEY`, and `AZURE_AI_SEARCH_INDEX` names are also accepted. If `.env` contains only `AZURE_AI_SEARCH_INDEX=lecturemind-index`, runtime uses `lecturemind-index` and reports `indexEnvSource: "AZURE_AI_SEARCH_INDEX"`.
+
+`.env.example` is documentation only. Next.js and the verification scripts read `.env`; `.env.example` cannot override local secrets or runtime config.
+
 `INGESTION_ENGINE=node` uses only the Phase 2 Node caption path. `worker` uses only the Python worker. `hybrid` tries Node captions first, then calls the worker when captions are missing or temporarily unavailable.
+
+For Phase 4 artifact generation and Phase 5 chat, set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and at least one of `AZURE_OPENAI_DEPLOYMENT_FAST` or `AZURE_OPENAI_DEPLOYMENT_STRONG`. If these are missing, transcript processing and local retrieval still work, but AI outputs fail safely.
+
+For Azure AI Search indexing, also set `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`, `AZURE_SEARCH_ENDPOINT`, and `AZURE_SEARCH_API_KEY`. If these are missing, chat uses local lexical retrieval fallback over `EvidenceSegment` rows.
 
 4. Create the database and run migrations:
 
@@ -131,6 +155,71 @@ Next.js workspace
 
 New evidence rows may include `language`, `extractionEngine`, and `rawSource`, so the workspace can distinguish YouTube captions, auto-captions, and Azure Speech transcription. Retryable failures show a retry button that calls the same process route with `force=true`.
 
+## Phase 4 AI Study Artifacts
+
+When a notebook is `READY`, the Studio panel can generate:
+
+- Structured Outline
+- 90-second Summary
+- 5-minute Summary
+- Study Guide
+- Flashcards
+- Quiz
+- Mind Map
+
+Artifact generation is server-side only. The browser never receives Azure OpenAI credentials and never calls the model directly. Each artifact is stored by `notebookId`, `type`, and `language`, so bilingual outputs do not overwrite each other.
+
+Generation flow:
+
+```text
+EvidenceSegment rows
+  -> evidence compiler
+  -> dedicated artifact agent
+  -> strict Zod schema
+  -> deterministic citation verifier
+  -> model verifier
+  -> optional one-pass repair
+  -> Artifact READY or FAILED
+```
+
+Citation chips are rendered in every artifact view and reuse the existing YouTube timestamp seek behavior. The verifier rejects missing evidence IDs, mismatched timestamps, invalid quiz choices, invalid mind map edges, duplicate cards/nodes, and unsupported model-verifier findings.
+
+Known limitations:
+
+- Generation is synchronous in Phase 4; long lectures may need later background jobs.
+- Very large transcripts are rejected safely rather than sent blindly to the model.
+- Model-verifier API failures do not block artifacts when deterministic checks pass; metadata marks `verifierModelUnavailable`.
+- UI labels remain English for now, while generated artifact content follows the selected language.
+
+## Phase 5 Retrieval and Chat
+
+When a notebook reaches `READY`, the workspace calls `POST /api/notebooks/[notebookId]/index`. If Azure Search and embeddings are configured, the app embeds `EvidenceSegment` rows, creates/updates the resolved Azure Search index, and stores only indexing metadata in PostgreSQL. Vectors live in Azure AI Search documents. In the legacy env example above, that resolved index is `lecturemind-index`.
+
+Use `GET /api/notebooks/[notebookId]/index/status` or the workspace source card to verify indexing. A ready indexed notebook reports `chatReady: true`, `retrievalMode: "azure_hybrid"`, and a positive `indexedSegmentCount`.
+
+If Search or embeddings are missing or fail, chat falls back to local lexical retrieval over the notebook's own `EvidenceSegment` rows. Missing Azure OpenAI chat config returns a structured `AI_NOT_CONFIGURED` response instead of a placeholder answer.
+
+Chat flow:
+
+```text
+User question
+  -> ownership-checked retrieval
+  -> Azure hybrid search or local lexical fallback
+  -> grounded chat prompt
+  -> JSON schema parse for {"answer","citations","followUps"}
+  -> deterministic citation verification
+  -> one repair attempt if citation IDs are missing or unsupported
+  -> safe cited fallback if repair still cannot be verified
+  -> ChatMessage persistence
+  -> UI answer with timestamp citation chips
+```
+
+The model may only return citation objects containing `evidenceSegmentId`. The backend attaches canonical timestamps and labels from the database. Unsupported citation IDs are rejected and never shown as source truth.
+
+Artifact generation now supports `mode: "async"` through PostgreSQL-backed jobs and `/api/jobs/[jobId]` polling. `mode: "sync"` remains available for debugging and backward compatibility.
+
+Production scaling path: Next.js routes should validate ownership and create `QUEUED` `Job` rows, an Azure Container Apps worker should poll those jobs, run the existing processors for ingestion/artifacts/indexing, and the UI should keep polling job/status endpoints. The current local path processes jobs inline or route-triggered for fast development feedback, but the processor boundary is already separated.
+
 ## Transcript Limitations
 
 - Node ingestion still only uses available YouTube captions or auto-captions.
@@ -155,8 +244,18 @@ New evidence rows may include `language`, `extractionEngine`, and `rawSource`, s
 - Reloading a ready workspace does not duplicate `EvidenceSegment` rows.
 - Retry after `FAILED` does not duplicate `EvidenceSegment` rows.
 - Clicking transcript timestamps seeks the embedded player.
+- Generate Structured Outline and confirm citation chips seek the video.
+- Generate both Summary tabs and confirm no raw JSON is shown.
+- Generate Study Guide, Flashcards, Quiz, and Mind Map.
+- Switch default language to Spanish or Telugu and generate one artifact.
+- Temporarily remove Azure OpenAI env vars and confirm the safe not-configured Studio card.
+- Refresh a generated notebook and confirm artifacts persist.
+- Ask a chat question and confirm the answer has citation chips.
+- Click a chat citation and confirm the video seeks.
+- Temporarily remove Azure AI Search env vars and confirm chat shows local retrieval fallback.
+- Temporarily remove Azure OpenAI chat env vars and confirm chat returns a safe not-configured error.
 
-More implementation details live in [docs/phase-2-youtube-ingestion.md](docs/phase-2-youtube-ingestion.md) and [docs/phase-3-worker-asr-fallback.md](docs/phase-3-worker-asr-fallback.md).
+More implementation details live in [docs/phase-2-youtube-ingestion.md](docs/phase-2-youtube-ingestion.md), [docs/phase-3-worker-asr-fallback.md](docs/phase-3-worker-asr-fallback.md), [docs/phase-4-ai-artifact-generation.md](docs/phase-4-ai-artifact-generation.md), and [docs/phase-5-retrieval-chat.md](docs/phase-5-retrieval-chat.md).
 
 ## Auth Troubleshooting
 
@@ -186,8 +285,12 @@ If your OAuth consent screen is in Testing mode, your Google account must be lis
 ## Verification
 
 ```bash
+npm run check-env
+node scripts/check-search-env.mjs
 npm run lint
 npm run typecheck
+npm run test:retrieval
+npm run test:chat
 npm run build
 ```
 
@@ -213,14 +316,23 @@ npm run build
 - Polished failure cards for expected ingestion errors
 - Responsive workspace with collapsible source and Studio panes
 - Mobile workspace tabs
-- Placeholder Studio cards for outline, study guide, flashcards, quiz, and mind map
-- Chat placeholder that does not generate fake answers
+- Real Studio artifact generation for outline, summaries, study guide, flashcards, quiz, and mind map
+- Citation-backed artifact renderers with timestamp seeking
+- Bilingual artifact storage by selected language
+- Verifier-backed schema and citation checks
+- Source-grounded chat API and UI with verified citations
+- Citation chips in chat seek the YouTube player
+- Azure AI Search indexing path for evidence segments
+- Local lexical retrieval fallback when Search or embeddings are missing
+- PostgreSQL-backed jobs for async artifact generation and indexing
 - Configure Chat modal that saves user preferences
 
 ## Later Phases
 
-- Azure AI Search indexing
-- Embeddings and retrieval
-- Source-grounded chat with citations
-- Summary, study guide, flashcard, quiz, and mind map generation
-- Verifier agent for grounded outputs
+- Advanced dynamic mind map interactions
+- Audio overview
+- Video overview
+- Slide deck generation
+- Canvas LMS integration
+- Faculty analytics
+- Provost workflows

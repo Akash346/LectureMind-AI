@@ -5,7 +5,13 @@ import { useRef } from "react";
 import { saveDefaultLanguage } from "@/app/actions/preferences";
 import { languageOptions } from "@/lib/validators";
 
-export function LanguageSelector({ value }: { value: string }) {
+export function LanguageSelector({
+  value,
+  onLanguageChange
+}: {
+  value: string;
+  onLanguageChange?: (value: string) => void;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -18,7 +24,10 @@ export function LanguageSelector({ value }: { value: string }) {
         defaultValue={value}
         id="top-language"
         name="defaultLanguage"
-        onChange={() => formRef.current?.requestSubmit()}
+        onChange={(event) => {
+          onLanguageChange?.(event.target.value);
+          formRef.current?.requestSubmit();
+        }}
       >
         {languageOptions.map((language) => (
           <option key={language.value} value={language.value}>
