@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getApiUser } from "@/lib/api-auth";
+import { logNotebookOwnerDebug } from "@/lib/auth-debug";
 import { prisma } from "@/lib/prisma";
 
 const paramsSchema = z.object({
@@ -47,6 +48,13 @@ export async function GET(
   if (!notebook) {
     return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
   }
+
+  logNotebookOwnerDebug({
+    event: "api_notebook_status",
+    sessionUserId: user.id,
+    notebookId: notebook.id,
+    notebookOwnerId: notebook.userId
+  });
 
   const latestJob = notebook.jobs[0] ?? null;
 

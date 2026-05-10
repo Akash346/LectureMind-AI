@@ -1,4 +1,5 @@
 import type { ArtifactType, LanguageCode } from "@/lib/ai/schemas";
+import { logNotebookOwnerDebug } from "@/lib/auth-debug";
 import { prisma } from "@/lib/prisma";
 
 const SHORT_EVIDENCE_TOKEN_LIMIT = 18000;
@@ -48,13 +49,18 @@ export type EvidencePacket = {
 
 export async function compileEvidenceForArtifact(
   notebookId: string,
+  userId: string,
   artifactType: ArtifactType,
   preferredLanguage: LanguageCode
 ): Promise<EvidencePacket> {
-  const notebook = await prisma.notebook.findUnique({
-    where: { id: notebookId },
+  const notebook = await prisma.notebook.findFirst({
+    where: {
+      id: notebookId,
+      userId
+    },
     select: {
       id: true,
+      userId: true,
       title: true,
       videoId: true,
       videoTitle: true,
@@ -72,6 +78,15 @@ export async function compileEvidenceForArtifact(
       }
     }
   });
+
+  if (notebook) {
+    logNotebookOwnerDebug({
+      event: "artifact_evidence_compiled",
+      sessionUserId: userId,
+      notebookId: notebook.id,
+      notebookOwnerId: notebook.userId
+    });
+  }
 
   const evidenceSegments =
     notebook?.evidenceSegments.map((segment, index) => ({

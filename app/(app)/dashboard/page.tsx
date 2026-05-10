@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { logAuthDebug } from "@/lib/auth-debug";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
@@ -31,11 +32,20 @@ export default async function DashboardPage() {
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      userId: true,
       title: true,
       sourceUrl: true,
       status: true,
       createdAt: true
     }
+  });
+
+  logAuthDebug("dashboard_notebooks_loaded", {
+    sessionUserId: user.id,
+    notebookOwnerIds: Array.from(
+      new Set(notebooks.map((notebook) => notebook.userId))
+    ),
+    notebookCount: notebooks.length
   });
 
   return (

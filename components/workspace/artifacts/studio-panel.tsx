@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/card";
 import {
   artifactTypes,
+  languageNames,
   type ArtifactType,
   type FlashcardsArtifact,
   type MediumSummaryArtifact,
@@ -119,6 +120,7 @@ export function StudioArtifactsPanel({
   onSeek: (seconds: number) => void;
 }) {
   const language = normalizeArtifactLanguage(selectedLanguage);
+  const languageLabel = languageNames[language];
   const ready = notebookStatus === "READY";
   const [artifacts, setArtifacts] = useState<StudioArtifact[]>(
     normalizeArtifactList(initialArtifacts, notebookId, language)
@@ -307,7 +309,7 @@ export function StudioArtifactsPanel({
               message:
                 error instanceof Error
                   ? error.message
-                  : "Try again. Your transcript evidence is still saved.",
+                  : `Could not generate this artifact in ${languageLabel}. Try again.`,
               errorType: "UNKNOWN"
             })
           )
@@ -321,14 +323,30 @@ export function StudioArtifactsPanel({
         setActiveSteps((current) => ({ ...current, [type]: 4 }));
       }
     },
-    [getArtifact, language, notebookId, ready, refreshArtifacts, waitForJob]
+    [
+      getArtifact,
+      language,
+      languageLabel,
+      notebookId,
+      ready,
+      refreshArtifacts,
+      waitForJob
+    ]
   );
 
   const generateAll = useCallback(async () => {
+    const missingTypes = artifactTypes.filter(
+      (type) => getArtifact(type).status !== "READY"
+    );
+
+    if (missingTypes.length === 0) {
+      return;
+    }
+
     setIsGeneratingAll(true);
-    setGenerating(new Set(artifactTypes));
+    setGenerating(new Set(missingTypes));
     setActiveSteps((current) =>
-      artifactTypes.reduce(
+      missingTypes.reduce(
         (next, type) => ({
           ...next,
           [type]: 0
@@ -337,7 +355,7 @@ export function StudioArtifactsPanel({
       )
     );
     setArtifacts((current) =>
-      artifactTypes.reduce(
+      missingTypes.reduce(
         (next, type) =>
           upsertArtifact(next, {
             ...getArtifact(type),
@@ -356,7 +374,11 @@ export function StudioArtifactsPanel({
         {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ artifactType: "ALL", language, mode: "async" })
+          body: JSON.stringify({
+            types: missingTypes,
+            language,
+            mode: "async"
+          })
         }
       );
       const payload = (await response.json()) as {
@@ -375,31 +397,42 @@ export function StudioArtifactsPanel({
         );
       }
     } catch (error) {
-      setArtifacts((current) =>
-        artifactTypes.reduce(
-          (next, type) =>
-            upsertArtifact(
-              next,
-              createFailedArtifact({
-                notebookId,
-                type,
-                language,
-                title: "Artifact generation failed.",
-                message:
-                  error instanceof Error
-                    ? error.message
-                    : "Try again. Your transcript evidence is still saved.",
-                errorType: "UNKNOWN"
-              })
-            ),
-          current
-        )
-      );
+      const refreshed = await refreshArtifacts();
+
+      if (!refreshed) {
+        setArtifacts((current) =>
+          missingTypes.reduce(
+            (next, type) =>
+              upsertArtifact(
+                next,
+                createFailedArtifact({
+                  notebookId,
+                  type,
+                  language,
+                  title: "Artifact generation failed.",
+                  message:
+                    error instanceof Error
+                      ? error.message
+                      : `Could not generate this artifact in ${languageLabel}. Try again.`,
+                  errorType: "UNKNOWN"
+                })
+              ),
+            current
+          )
+        );
+      }
     } finally {
       setGenerating(new Set());
       setIsGeneratingAll(false);
     }
-  }, [getArtifact, language, notebookId, refreshArtifacts, waitForJob]);
+  }, [
+    getArtifact,
+    language,
+    languageLabel,
+    notebookId,
+    refreshArtifacts,
+    waitForJob
+  ]);
 
   const summaryShort = getArtifact("SUMMARY_SHORT");
   const summaryMedium = getArtifact("SUMMARY_MEDIUM");
@@ -413,7 +446,7 @@ export function StudioArtifactsPanel({
             <p className="text-sm font-semibold">AI study artifacts</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {ready
-                ? `Generate grounded outputs in ${language}.`
+                ? `Study language: ${languageLabel}.`
                 : "Waiting for timestamped evidence."}
             </p>
           </div>
@@ -526,6 +559,7 @@ export function StudioArtifactsPanel({
             <EmptyArtifactMessage
               ready={ready}
               text="Generate summaries to replace this placeholder with cited study notes."
+              languageLabel={languageLabel}
             />
           ) : null}
           <div className="grid grid-cols-2 gap-2">
@@ -670,6 +704,7 @@ function ArtifactShell({
           <EmptyArtifactMessage
             ready={!disabled}
             text="Generate this artifact to fill the card with cited lecture content."
+            languageLabel={languageNames[artifact.language]}
           />
         ) : null}
       </CardContent>
@@ -723,11 +758,19 @@ function ArtifactHeader({
   );
 }
 
-function EmptyArtifactMessage({ ready, text }: { ready: boolean; text: string }) {
+function EmptyArtifactMessage({
+  ready,
+  text,
+  languageLabel
+}: {
+  ready: boolean;
+  text: string;
+  languageLabel: string;
+}) {
   return (
     <div className="flex min-h-16 items-center gap-3 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
       <Layers3 className="h-4 w-4 shrink-0" />
-      {ready ? text : "Waiting for transcript evidence."}
+      {ready ? `${text} Generate in ${languageLabel}.` : "Waiting for transcript evidence."}
     </div>
   );
 }

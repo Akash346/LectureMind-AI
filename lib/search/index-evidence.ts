@@ -18,6 +18,7 @@ import {
 } from "@/lib/search/search-client";
 
 const INDEX_BATCH_SIZE = 50;
+const DEFAULT_EVIDENCE_LANGUAGE = "en";
 
 type IndexFailurePhase =
   | "ensure_index"
@@ -75,7 +76,7 @@ export async function indexEvidenceSegments({
   force = false
 }: {
   notebookId: string;
-  userId?: string | null;
+  userId: string;
   force?: boolean;
 }): Promise<IndexEvidenceResult> {
   const indexName = getSearchIndexName();
@@ -497,7 +498,7 @@ export async function generateEmbeddingsForNotebook({
   userId
 }: {
   notebookId: string;
-  userId?: string | null;
+  userId: string;
 }) {
   if (!isEmbeddingConfigured()) {
     return {
@@ -695,12 +696,12 @@ async function checkEmbeddingDimensions({
 
 async function loadNotebookForIndex(
   notebookId: string,
-  userId?: string | null
+  userId: string
 ): Promise<NotebookForIndex | null> {
   return prisma.notebook.findFirst({
     where: {
       id: notebookId,
-      ...(userId ? { userId } : {})
+      userId
     },
     select: {
       id: true,
@@ -769,7 +770,7 @@ function buildSearchDocument({
     evidenceSegmentId: segment.id,
     lectureTitle: notebook.videoTitle ?? notebook.title,
     videoId: segment.videoId || notebook.videoId || "",
-    language: segment.language ?? notebook.language ?? "en",
+    language: segment.language ?? DEFAULT_EVIDENCE_LANGUAGE,
     startSec: segment.startSec,
     endSec: segment.endSec,
     text: segment.text.trim(),

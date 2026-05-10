@@ -3,13 +3,10 @@
 import type { MindMapArtifact } from "@/lib/ai/schemas";
 import { cn } from "@/lib/utils";
 
-import { CitationList } from "./citation-chip";
 import type { CitationProps } from "./types";
 
 export function MindMapView({
-  artifact,
-  evidenceById,
-  onSeek
+  artifact
 }: {
   artifact: MindMapArtifact;
 } & Omit<CitationProps, "citations">) {
@@ -28,10 +25,8 @@ export function MindMapView({
         <NodeBlock
           depth={0}
           edgesBySource={edgesBySource}
-          evidenceById={evidenceById}
           node={root}
           nodes={artifact.nodes}
-          onSeek={onSeek}
           visited={new Set()}
         />
       </div>
@@ -44,11 +39,6 @@ export function MindMapView({
               <p className="mt-1 text-xs uppercase text-muted-foreground">
                 {node.type}
               </p>
-              <CitationList
-                citations={node.citations}
-                evidenceById={evidenceById}
-                onSeek={onSeek}
-              />
             </div>
           ))}
       </div>
@@ -60,8 +50,6 @@ function NodeBlock({
   node,
   nodes,
   edgesBySource,
-  evidenceById,
-  onSeek,
   depth,
   visited
 }: {
@@ -70,7 +58,7 @@ function NodeBlock({
   edgesBySource: Map<string, MindMapArtifact["edges"]>;
   depth: number;
   visited: Set<string>;
-} & Omit<CitationProps, "citations">) {
+}) {
   if (visited.has(node.id)) {
     return null;
   }
@@ -82,11 +70,6 @@ function NodeBlock({
     <div className={cn(depth > 0 && "ml-4 border-l pl-3")}>
       <div className="rounded-md bg-background p-3 shadow-sm">
         <p className="text-sm font-semibold">{node.label}</p>
-        <CitationList
-          citations={node.citations}
-          evidenceById={evidenceById}
-          onSeek={onSeek}
-        />
       </div>
       {edges.length > 0 ? (
         <div className="mt-2 space-y-2">
@@ -105,10 +88,8 @@ function NodeBlock({
                 <NodeBlock
                   depth={depth + 1}
                   edgesBySource={edgesBySource}
-                  evidenceById={evidenceById}
                   node={target}
                   nodes={nodes}
-                  onSeek={onSeek}
                   visited={new Set(visited)}
                 />
               </div>

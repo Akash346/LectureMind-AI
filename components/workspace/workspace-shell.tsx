@@ -36,8 +36,6 @@ import type { User } from "next-auth";
 
 import { SignOutButton } from "@/components/auth-buttons";
 import { Brand } from "@/components/brand";
-import { LanguageSelector } from "@/components/language-selector";
-import { SettingsModal, type PreferenceValues } from "@/components/settings-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StudioArtifactsPanel } from "@/components/workspace/artifacts/studio-panel";
 import type { StudioArtifact } from "@/components/workspace/artifacts/types";
@@ -62,11 +60,23 @@ import {
   type VideoErrorType,
   videoErrorCopy
 } from "@/lib/video-errors";
+import {
+  languageNames,
+  normalizeArtifactLanguage,
+  type LanguageCode
+} from "@/lib/ai/schemas";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { cn } from "@/lib/utils";
 
 type NotebookStatus = "DRAFT" | "PENDING" | "PROCESSING" | "READY" | "FAILED";
 type JobStatus = "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+
+type PreferenceValues = {
+  theme: string;
+  defaultLanguage: string;
+  chatMode: string;
+  responseLength: string;
+};
 
 type LatestJobVm = {
   status: JobStatus;
@@ -266,8 +276,9 @@ export function WorkspaceShell({
   const [indexStatus, setIndexStatus] = useState<IndexStatusVm | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    preference.defaultLanguage
+  const selectedLanguage = useMemo(
+    () => normalizeArtifactLanguage(notebook.language),
+    [notebook.language]
   );
   const processStartedRef = useRef(false);
   const indexStartedRef = useRef(false);
@@ -438,8 +449,7 @@ export function WorkspaceShell({
   return (
     <main className="flex min-h-screen flex-col bg-muted/20">
       <WorkspaceTopBar
-        onLanguageChange={setSelectedLanguage}
-        preference={{ ...preference, defaultLanguage: selectedLanguage }}
+        studyLanguage={selectedLanguage}
         user={user}
       />
       <div className="hidden flex-1 gap-3 p-3 md:grid md:grid-cols-[auto_1fr_auto]">
@@ -548,13 +558,15 @@ export function WorkspaceShell({
 
 function WorkspaceTopBar({
   user,
-  preference,
-  onLanguageChange
+  studyLanguage
 }: {
   user: User;
-  preference: PreferenceValues;
-  onLanguageChange: (value: string) => void;
+  studyLanguage: LanguageCode;
 }) {
+  const studyLanguageLabel = languageNames[studyLanguage];
+  const studyLanguageHelp =
+    "Generated study materials use this language. Source transcript stays original for accuracy.";
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="flex h-16 items-center justify-between gap-3 px-4">
@@ -566,13 +578,14 @@ function WorkspaceTopBar({
               New notebook
             </Link>
           </Button>
-          <div className="hidden sm:block">
-            <LanguageSelector
-              onLanguageChange={onLanguageChange}
-              value={preference.defaultLanguage}
-            />
+          <div
+            aria-label={`Study language: ${studyLanguageLabel}. ${studyLanguageHelp}`}
+            className="hidden items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs sm:flex"
+            title={studyLanguageHelp}
+          >
+            <span className="text-muted-foreground">Study language:</span>
+            <span className="font-semibold">{studyLanguageLabel}</span>
           </div>
-          <SettingsModal preference={preference} />
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -602,11 +615,11 @@ function WorkspaceTopBar({
               <DropdownMenuItem asChild>
                 <Link href="/notebooks/new">New notebook</Link>
               </DropdownMenuItem>
-              <div className="sm:hidden">
-                <LanguageSelector
-                  onLanguageChange={onLanguageChange}
-                  value={preference.defaultLanguage}
-                />
+              <div className="px-2 py-1.5 text-xs text-muted-foreground sm:hidden">
+                Study language:{" "}
+                <span className="font-semibold text-foreground">
+                  {studyLanguageLabel}
+                </span>
               </div>
               <SignOutButton />
             </DropdownMenuContent>
@@ -761,6 +774,8 @@ function CenterPane({
   const isReady = notebook.status === "READY";
   const isFailed = notebook.status === "FAILED";
   const retryAllowed = canRetryNotebook(notebook);
+  const studyLanguage = normalizeArtifactLanguage(selectedLanguage);
+  const studyLanguageLabel = languageNames[studyLanguage];
   const isProcessing =
     notebook.status === "PENDING" ||
     notebook.status === "PROCESSING" ||
@@ -775,6 +790,13 @@ function CenterPane({
               Workspace
             </p>
             <h1 className="truncate text-xl font-semibold">{notebook.title}</h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Study language:{" "}
+              <span className="font-medium text-foreground">
+                {studyLanguageLabel}
+              </span>
+              . Source transcript and timestamps remain original.
+            </p>
           </div>
           <Badge variant={statusVariant[notebook.status]}>
             Evidence {notebook.status.toLowerCase()}

@@ -4,7 +4,11 @@ import type { z } from "zod";
 import { generateJson, isAzureOpenAIConfigured } from "@/lib/ai/azure-openai";
 import { normalizeAIGenerationError } from "@/lib/ai/errors";
 import { formatTimestamp } from "@/lib/ai/evidence-compiler";
-import { normalizeArtifactLanguage } from "@/lib/ai/schemas";
+import {
+  languageNames,
+  normalizeArtifactLanguage,
+  type LanguageCode
+} from "@/lib/ai/schemas";
 import {
   buildChatMessages,
   buildChatRepairMessages
@@ -29,6 +33,71 @@ import { getSearchIndexName } from "@/lib/search/search-client";
 
 const INSUFFICIENT_EVIDENCE_ANSWER =
   "I could not find enough lecture evidence to answer this safely.";
+
+const localizedChatCopy: Record<
+  LanguageCode,
+  {
+    insufficientEvidence: string;
+    safeFallbackAnswer: string;
+    broadIntro: string;
+    followUps: string[];
+  }
+> = {
+  en: {
+    insufficientEvidence: INSUFFICIENT_EVIDENCE_ANSWER,
+    safeFallbackAnswer:
+      "I found relevant lecture moments, but I could not verify a fully grounded answer. Use these cited moments to review the source.",
+    broadIntro: "Review these lecture points:",
+    followUps: ["Ask me to explain one cited moment.", "Ask for a simpler summary."]
+  },
+  es: {
+    insufficientEvidence:
+      "No pude encontrar suficiente evidencia de la clase para responder con seguridad.",
+    safeFallbackAnswer:
+      "Encontre momentos relevantes de la clase, pero no pude verificar una respuesta completamente fundamentada. Usa estos momentos citados para revisar la fuente.",
+    broadIntro: "Repasa estos puntos de la clase:",
+    followUps: ["Pideme que explique un momento citado.", "Pide un resumen mas simple."]
+  },
+  hi: {
+    insufficientEvidence:
+      "मुझे सुरक्षित रूप से उत्तर देने के लिए पर्याप्त lecture evidence नहीं मिला.",
+    safeFallbackAnswer:
+      "मुझे lecture के कुछ relevant moments मिले, लेकिन मैं पूरी तरह grounded answer verify नहीं कर सका. Source review करने के लिए इन cited moments का उपयोग करें.",
+    broadIntro: "इन lecture points को review करें:",
+    followUps: ["किसी एक cited moment को explain करने को कहें.", "एक simpler summary मांगें."]
+  },
+  te: {
+    insufficientEvidence:
+      "సురక్షితంగా సమాధానం ఇవ్వడానికి సరిపడా lecture evidence దొరకలేదు.",
+    safeFallbackAnswer:
+      "Lectureలో సంబంధిత moments దొరికాయి, కానీ పూర్తిగా grounded answerను verify చేయలేకపోయాను. Source review కోసం ఈ cited moments ఉపయోగించండి.",
+    broadIntro: "ఈ lecture pointsను review చేయండి:",
+    followUps: ["ఒక cited moment explain చేయమని అడగండి.", "సులభమైన summary అడగండి."]
+  },
+  fr: {
+    insufficientEvidence:
+      "Je n'ai pas trouve assez d'elements du cours pour repondre de facon sure.",
+    safeFallbackAnswer:
+      "J'ai trouve des passages pertinents du cours, mais je n'ai pas pu verifier une reponse entierement fondee. Utilise ces passages cites pour revoir la source.",
+    broadIntro: "Revise ces points du cours :",
+    followUps: ["Demande-moi d'expliquer un passage cite.", "Demande un resume plus simple."]
+  },
+  ar: {
+    insufficientEvidence:
+      "لم أجد أدلة كافية من المحاضرة للإجابة بأمان.",
+    safeFallbackAnswer:
+      "وجدت مواضع ذات صلة في المحاضرة، لكنني لم أتمكن من التحقق من إجابة مدعومة بالكامل. استخدم هذه المواضع المقتبسة لمراجعة المصدر.",
+    broadIntro: "راجع نقاط المحاضرة هذه:",
+    followUps: ["اطلب مني شرح موضع مقتبس.", "اطلب ملخصا أبسط."]
+  },
+  zh: {
+    insufficientEvidence: "我没有找到足够的课程证据来安全回答。",
+    safeFallbackAnswer:
+      "我找到了相关的课程片段，但无法验证一个完全有依据的回答。请用这些引用片段回看来源。",
+    broadIntro: "复习这些课程要点：",
+    followUps: ["请我解释某个引用片段。", "请求更简单的总结。"]
+  }
+};
 
 type VerificationFailureReason =
   | "schema_validation_failed"
@@ -77,7 +146,6 @@ export async function answerNotebookChat({
       userId,
       notebookId,
       query: request.message,
-      language: request.language,
       topK: 8
     });
 
@@ -90,9 +158,16 @@ export async function answerNotebookChat({
     }
 
     retrieval = retrievalResult;
+    const targetLanguage =
+      detectExplicitAnswerLanguage(request.message) ??
+      normalizeArtifactLanguage(retrieval.notebook.language);
+    const chatCopy = localizedChatCopy[targetLanguage];
+
     logChatEvent("notebook_validated", {
       notebookId,
-      notebookStatus: "READY"
+      notebookStatus: "READY",
+      outputLanguageCode: targetLanguage,
+      outputLanguageLabel: languageNames[targetLanguage]
     });
     logChatEvent("retrieval_completed", {
       notebookId,
@@ -128,7 +203,8 @@ export async function answerNotebookChat({
       timeoutMs: 90_000,
       messages: buildChatMessages({
         question: request.message,
-        language: normalizeArtifactLanguage(request.language),
+        language: targetLanguage,
+        insufficientEvidenceAnswer: chatCopy.insufficientEvidence,
         mode: request.mode,
         responseLength: request.responseLength,
         chunks: retrieval.chunks
@@ -143,7 +219,8 @@ export async function answerNotebookChat({
     logChatEvent("json_parse_started", { operation: "grounded_chat" });
     const verified = parseAndVerifyChatResponse({
       candidate: generated.json,
-      chunks: retrieval.chunks
+      chunks: retrieval.chunks,
+      insufficientEvidenceAnswer: chatCopy.insufficientEvidence
     });
 
     if (!verified.ok) {
@@ -154,7 +231,9 @@ export async function answerNotebookChat({
 
       const repaired = await repairChatResponse({
         candidate: generated.json,
-        chunks: retrieval.chunks
+        chunks: retrieval.chunks,
+        language: targetLanguage,
+        insufficientEvidenceAnswer: chatCopy.insufficientEvidence
       });
 
       if (!repaired.ok) {
@@ -167,7 +246,8 @@ export async function answerNotebookChat({
           chunks: retrieval.chunks,
           retrievalMode: retrieval.retrievalMode,
           model: generated.deployment,
-          retrieval
+          retrieval,
+          language: targetLanguage
         });
 
         await persistChatMessages({
@@ -181,6 +261,7 @@ export async function answerNotebookChat({
             model: generated.deployment,
             contextSegmentCount: retrieval.chunks.length,
             safeFallback: true,
+            outputLanguageCode: targetLanguage,
             verificationReason: repaired.verificationReason
           }
         });
@@ -210,7 +291,8 @@ export async function answerNotebookChat({
         chunks: retrieval.chunks,
         retrievalMode: retrieval.retrievalMode,
         model: generated.deployment,
-        retrieval
+        retrieval,
+        language: targetLanguage
       });
 
       if (repairedBroadFallback) {
@@ -224,7 +306,8 @@ export async function answerNotebookChat({
             retrievalMode: retrieval.retrievalMode,
             model: generated.deployment,
             contextSegmentCount: retrieval.chunks.length,
-            broadQuestionFallback: true
+            broadQuestionFallback: true,
+            outputLanguageCode: targetLanguage
           }
         });
         logChatEvent("response_persisted", {
@@ -260,7 +343,8 @@ export async function answerNotebookChat({
           retrievalMode: retrieval.retrievalMode,
           model: generated.deployment,
           contextSegmentCount: retrieval.chunks.length,
-          repaired: true
+          repaired: true,
+          outputLanguageCode: targetLanguage
         }
       });
       logChatEvent("response_persisted", { notebookId, repaired: true });
@@ -282,7 +366,8 @@ export async function answerNotebookChat({
       chunks: retrieval.chunks,
       retrievalMode: retrieval.retrievalMode,
       model: generated.deployment,
-      retrieval
+      retrieval,
+      language: targetLanguage
     });
 
     if (broadFallback) {
@@ -296,7 +381,8 @@ export async function answerNotebookChat({
           retrievalMode: retrieval.retrievalMode,
           model: generated.deployment,
           contextSegmentCount: retrieval.chunks.length,
-          broadQuestionFallback: true
+          broadQuestionFallback: true,
+          outputLanguageCode: targetLanguage
         }
       });
       logChatEvent("response_persisted", {
@@ -332,7 +418,8 @@ export async function answerNotebookChat({
         retrievalMode: retrieval.retrievalMode,
         model: generated.deployment,
         contextSegmentCount: retrieval.chunks.length,
-        repaired: false
+        repaired: false,
+        outputLanguageCode: targetLanguage
       }
     });
     logChatEvent("response_persisted", { notebookId, repaired: false });
@@ -410,10 +497,12 @@ export function canonicalizeChatCitations({
 
 export function parseAndVerifyChatResponse({
   candidate,
-  chunks
+  chunks,
+  insufficientEvidenceAnswer = INSUFFICIENT_EVIDENCE_ANSWER
 }: {
   candidate: unknown;
   chunks: LectureEvidenceChunk[];
+  insufficientEvidenceAnswer?: string;
 }): VerifiedChatResponse {
   const parsed = modelChatResponseSchema.safeParse(candidate);
 
@@ -432,19 +521,21 @@ export function parseAndVerifyChatResponse({
   logChatEvent("citation_verification_started", {
     citationCount: parsed.data.citations.length
   });
-  return verifyParsedChatResponse(parsed.data, chunks);
+  return verifyParsedChatResponse(parsed.data, chunks, insufficientEvidenceAnswer);
 }
 
 export function createSafeCitedFallback({
   chunks,
   retrievalMode,
   model,
-  retrieval
+  retrieval,
+  language = "en"
 }: {
   chunks: LectureEvidenceChunk[];
   retrievalMode: ChatSuccessResponse["retrievalMode"];
   model: string;
   retrieval?: Extract<RetrieveLectureContextResult, { ok: true }>;
+  language?: LanguageCode;
 }): ChatSuccessResponse {
   const topCitationIds = chunks.slice(0, 2).map((chunk) => chunk.evidenceSegmentId);
   const canonical = canonicalizeChatCitations({
@@ -453,13 +544,9 @@ export function createSafeCitedFallback({
   });
 
   return {
-    answer:
-      "I found relevant lecture moments, but I could not verify a fully grounded answer. Use these cited moments to review the source.",
+    answer: localizedChatCopy[language].safeFallbackAnswer,
     citations: canonical.ok ? canonical.citations : [],
-    followUps: [
-      "Ask me to explain one cited moment.",
-      "Ask for a simpler summary."
-    ],
+    followUps: localizedChatCopy[language].followUps,
     retrievalMode,
     metadata: buildSuccessMetadata({
       model,
@@ -476,7 +563,8 @@ function createBroadQuestionFallbackIfNeeded({
   chunks,
   retrievalMode,
   model,
-  retrieval
+  retrieval,
+  language = "en"
 }: {
   question: string;
   response: Pick<ChatSuccessResponse, "answer" | "citations" | "followUps">;
@@ -484,10 +572,11 @@ function createBroadQuestionFallbackIfNeeded({
   retrievalMode: ChatSuccessResponse["retrievalMode"];
   model: string;
   retrieval: Extract<RetrieveLectureContextResult, { ok: true }>;
+  language?: LanguageCode;
 }) {
   if (
     !isBroadStudyQuestion(question) ||
-    !isInsufficientEvidenceAnswer(response.answer) ||
+    !isInsufficientEvidenceAnswer(response.answer, language) ||
     chunks.length === 0
   ) {
     return null;
@@ -505,17 +594,14 @@ function createBroadQuestionFallbackIfNeeded({
 
   return {
     answer: [
-      "Review these lecture points:",
+      localizedChatCopy[language].broadIntro,
       "",
       ...selected.map(
         (chunk) => `- ${chunk.label}: ${summarizeChunkText(chunk.text)}`
       )
     ].join("\n"),
     citations: canonical.citations,
-    followUps: [
-      "Turn these into flashcards.",
-      "Explain the hardest point more simply."
-    ],
+    followUps: localizedChatCopy[language].followUps,
     retrievalMode,
     metadata: buildSuccessMetadata({
       model,
@@ -528,10 +614,14 @@ function createBroadQuestionFallbackIfNeeded({
 
 async function repairChatResponse({
   candidate,
-  chunks
+  chunks,
+  language,
+  insufficientEvidenceAnswer
 }: {
   candidate: unknown;
   chunks: LectureEvidenceChunk[];
+  language: LanguageCode;
+  insufficientEvidenceAnswer: string;
 }): Promise<VerifiedChatResponse> {
   try {
     const repaired = await generateJson({
@@ -541,13 +631,15 @@ async function repairChatResponse({
       timeoutMs: 60_000,
       messages: buildChatRepairMessages({
         invalidJson: candidate,
-        allowedEvidenceIds: chunks.map((chunk) => chunk.evidenceSegmentId)
+        allowedEvidenceIds: chunks.map((chunk) => chunk.evidenceSegmentId),
+        language
       })
     });
 
     return parseAndVerifyChatResponse({
       candidate: repaired.json,
-      chunks
+      chunks,
+      insufficientEvidenceAnswer
     });
   } catch (error) {
     const safe = normalizeAIGenerationError(error);
@@ -564,13 +656,17 @@ async function repairChatResponse({
 
 function verifyParsedChatResponse(
   parsed: ModelChatResponse,
-  chunks: LectureEvidenceChunk[]
+  chunks: LectureEvidenceChunk[],
+  insufficientEvidenceAnswer = INSUFFICIENT_EVIDENCE_ANSWER
 ): VerifiedChatResponse {
-  if (isInsufficientEvidenceAnswer(parsed.answer) && parsed.citations.length === 0) {
+  if (
+    isInsufficientEvidenceAnswer(parsed.answer, undefined, insufficientEvidenceAnswer) &&
+    parsed.citations.length === 0
+  ) {
     return {
       ok: true,
       response: {
-        answer: INSUFFICIENT_EVIDENCE_ANSWER,
+        answer: insufficientEvidenceAnswer,
         citations: [],
         followUps: []
       }
@@ -766,8 +862,48 @@ function logVerificationFailure(
   });
 }
 
-function isInsufficientEvidenceAnswer(answer: string) {
-  return answer.trim() === INSUFFICIENT_EVIDENCE_ANSWER;
+function isInsufficientEvidenceAnswer(
+  answer: string,
+  language?: LanguageCode,
+  expectedAnswer?: string
+) {
+  const normalized = answer.trim();
+
+  if (expectedAnswer && normalized === expectedAnswer.trim()) {
+    return true;
+  }
+
+  if (language && normalized === localizedChatCopy[language].insufficientEvidence) {
+    return true;
+  }
+
+  return (
+    normalized === INSUFFICIENT_EVIDENCE_ANSWER ||
+    Object.values(localizedChatCopy).some(
+      (copy) => normalized === copy.insufficientEvidence
+    )
+  );
+}
+
+function detectExplicitAnswerLanguage(message: string): LanguageCode | null {
+  const normalized = message.toLowerCase();
+  const asksForLanguage =
+    /\b(answer|respond|reply|explain|summarize|write)\b/.test(normalized) &&
+    /\bin\b/.test(normalized);
+
+  if (!asksForLanguage) {
+    return null;
+  }
+
+  for (const [code, label] of Object.entries(languageNames) as Array<
+    [LanguageCode, string]
+  >) {
+    if (normalized.includes(label.toLowerCase())) {
+      return code;
+    }
+  }
+
+  return null;
 }
 
 function isBroadStudyQuestion(question: string) {

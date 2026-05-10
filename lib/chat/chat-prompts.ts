@@ -5,12 +5,14 @@ import type { LectureEvidenceChunk } from "@/lib/retrieval/lecture-retriever";
 export function buildChatMessages({
   question,
   language,
+  insufficientEvidenceAnswer,
   mode,
   responseLength,
   chunks
 }: {
   question: string;
   language: LanguageCode;
+  insufficientEvidenceAnswer: string;
   mode: ChatMode;
   responseLength: ChatResponseLength;
   chunks: LectureEvidenceChunk[];
@@ -18,7 +20,12 @@ export function buildChatMessages({
   return [
     {
       role: "system" as const,
-      content: buildSystemPrompt({ language, mode, responseLength })
+      content: buildSystemPrompt({
+        language,
+        insufficientEvidenceAnswer,
+        mode,
+        responseLength
+      })
     },
     {
       role: "user" as const,
@@ -42,16 +49,18 @@ export function buildChatMessages({
 
 export function buildChatRepairMessages({
   invalidJson,
-  allowedEvidenceIds
+  allowedEvidenceIds,
+  language
 }: {
   invalidJson: unknown;
   allowedEvidenceIds: string[];
+  language: LanguageCode;
 }) {
   return [
     {
       role: "system" as const,
       content:
-        "Repair the assistant response into valid JSON only. Do not add new facts. Use only the allowed evidenceSegmentId values. Return citations as objects with evidenceSegmentId only. If evidence is insufficient, return the safe insufficient-evidence JSON."
+        `Repair the assistant response into valid JSON only. Do not add new facts. Use only the allowed evidenceSegmentId values. Return citations as objects with evidenceSegmentId only. Write student-facing text in ${languageNames[language]}. Preserve citations, timestamps, evidence IDs, URLs, code, formulas, equations, and proper names exactly. If evidence is insufficient, return the safe insufficient-evidence JSON.`
     },
     {
       role: "user" as const,
@@ -66,13 +75,17 @@ export function buildChatRepairMessages({
 
 function buildSystemPrompt({
   language,
+  insufficientEvidenceAnswer,
   mode,
   responseLength
 }: {
   language: LanguageCode;
+  insufficientEvidenceAnswer: string;
   mode: ChatMode;
   responseLength: ChatResponseLength;
 }) {
+  const languageName = languageNames[language];
+
   return [
     "You are LectureMind's grounded lecture assistant.",
     "Use only the provided evidence segments for default answers.",
@@ -84,8 +97,10 @@ function buildSystemPrompt({
     "For broad study, review, exam, or important-points questions, use representative retrieved evidence to answer unless the evidence is genuinely unrelated.",
     "Every factual lecture claim must be supported by at least one evidenceSegmentId in the citations array.",
     "Each citation item must be an object with exactly one key: evidenceSegmentId.",
-    `If the evidence is insufficient, return exactly: {"answer":"I could not find enough lecture evidence to answer this safely.","citations":[],"followUps":[]}`,
-    `Answer language: ${languageNames[language]}. Preserve formulas, code, equations, proper names, timestamps, and evidence IDs exactly.`,
+    `If the evidence is insufficient, return exactly: {"answer":"${insufficientEvidenceAnswer}","citations":[],"followUps":[]}`,
+    `Answer in ${languageName} by default. Use the retrieved lecture evidence only.`,
+    "Preserve citations, timestamps, source references, evidence IDs, URLs, formulas, code, equations, and proper names exactly.",
+    "Keep important technical terms in English when translation would reduce clarity.",
     `Study mode: ${mode}.`,
     `Response length: ${responseLength}.`,
     "Be concise but useful."

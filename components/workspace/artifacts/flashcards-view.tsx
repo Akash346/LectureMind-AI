@@ -7,13 +7,10 @@ import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { FlashcardsArtifact } from "@/lib/ai/schemas";
 
-import { CitationList } from "./citation-chip";
 import type { CitationProps } from "./types";
 
 export function FlashcardsView({
-  artifact,
-  evidenceById,
-  onSeek
+  artifact
 }: {
   artifact: FlashcardsArtifact;
 } & Omit<CitationProps, "citations">) {
@@ -52,13 +49,6 @@ export function FlashcardsView({
         <p className="mt-4 text-sm font-semibold leading-6">
           {flipped ? card.back : card.front}
         </p>
-        {flipped ? (
-          <CitationList
-            citations={card.citations}
-            evidenceById={evidenceById}
-            onSeek={onSeek}
-          />
-        ) : null}
       </button>
       <div className="grid grid-cols-2 gap-2">
         <Button

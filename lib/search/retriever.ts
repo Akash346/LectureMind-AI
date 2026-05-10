@@ -11,9 +11,8 @@ export type RetrievalMode = "azure_hybrid" | "local_lexical_fallback";
 
 export type SearchEvidenceInput = {
   notebookId: string;
-  userId?: string | null;
+  userId: string;
   query: string;
-  language?: string | null;
   topK?: number;
 };
 
@@ -45,7 +44,6 @@ export async function searchEvidence({
   notebookId,
   userId,
   query,
-  language,
   topK = 8
 }: SearchEvidenceInput): Promise<EvidenceSearchHit[]> {
   if (!isSearchConfigured()) {
@@ -67,8 +65,7 @@ export async function searchEvidence({
 
   const filters = [
     `notebookId eq '${escapeODataString(notebookId)}'`,
-    userId ? `userId eq '${escapeODataString(userId)}'` : null,
-    language ? `language eq '${escapeODataString(language)}'` : null
+    `userId eq '${escapeODataString(userId)}'`
   ].filter(Boolean);
   const response = await searchFetch<AzureSearchResponse>({
     path: `/indexes/${encodeURIComponent(getSearchIndexName())}/docs/search`,

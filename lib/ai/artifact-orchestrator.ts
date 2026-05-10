@@ -19,6 +19,7 @@ import {
 import {
   artifactTypes,
   artifactTypeSchema,
+  languageNames,
   normalizeArtifactLanguage,
   type ArtifactJson,
   type ArtifactType,
@@ -173,6 +174,7 @@ export async function generateArtifact({
 
     const packet = await compileEvidenceForArtifact(
       notebookId,
+      userId,
       parsedType.data,
       normalizedLanguage
     );
@@ -204,6 +206,8 @@ export async function generateArtifact({
         verifiedAt: new Date(),
         sourceSegmentCount: packet.evidenceSegments.length,
         metadata: {
+          outputLanguageCode: normalizedLanguage,
+          outputLanguageLabel: languageNames[normalizedLanguage],
           modelDeployment: generated.deployment,
           generationDurationMs: generated.durationMs,
           generationFallbackUsed: generated.fallbackUsed ?? false,
@@ -218,6 +222,19 @@ export async function generateArtifact({
         } satisfies Prisma.InputJsonValue
       }
     });
+
+    console.info(
+      "[ai:artifact]",
+      JSON.stringify({
+        event: "succeeded",
+        notebookId,
+        artifactType: parsedType.data,
+        outputLanguageCode: normalizedLanguage,
+        outputLanguageLabel: languageNames[normalizedLanguage],
+        evidenceCount: packet.evidenceSegments.length,
+        deployment: generated.deployment
+      })
+    );
 
     return serializeArtifact(artifact);
   } catch (error) {
@@ -239,7 +256,9 @@ export async function generateArtifact({
         verifiedAt: null,
         sourceSegmentCount: null,
         metadata: {
-          errorTitle: safeError.title
+          errorTitle: safeError.title,
+          outputLanguageCode: normalizedLanguage,
+          outputLanguageLabel: languageNames[normalizedLanguage]
         } satisfies Prisma.InputJsonValue
       }
     });
@@ -250,7 +269,9 @@ export async function generateArtifact({
         event: "failed",
         notebookId,
         artifactType: parsedType.data,
-        language: normalizedLanguage,
+        outputLanguageCode: normalizedLanguage,
+        outputLanguageLabel: languageNames[normalizedLanguage],
+        evidenceCount: notebook._count.evidenceSegments,
         errorType: safeError.type,
         statusCode: safeError.statusCode,
         providerCode: safeError.providerCode
@@ -270,14 +291,44 @@ export async function generateAllArtifacts({
   userId: string;
   language: string;
 }) {
+  const normalizedLanguage = normalizeArtifactLanguage(language);
+  const notebook = await prisma.notebook.findFirst({
+    where: {
+      id: notebookId,
+      userId
+    },
+    select: {
+      id: true,
+      artifacts: {
+        where: {
+          language: normalizedLanguage
+        }
+      }
+    }
+  });
+
+  if (!notebook) {
+    return null;
+  }
+
+  const existingByType = new Map(
+    notebook.artifacts.map((artifact) => [artifact.type, artifact])
+  );
   const results: SerializedArtifact[] = [];
 
   for (const artifactType of artifactTypes) {
+    const existing = existingByType.get(artifactType);
+
+    if (existing?.status === "READY") {
+      results.push(serializeArtifact(existing));
+      continue;
+    }
+
     const artifact = await generateArtifact({
       notebookId,
       userId,
       artifactType,
-      language
+      language: normalizedLanguage
     });
 
     if (!artifact) {

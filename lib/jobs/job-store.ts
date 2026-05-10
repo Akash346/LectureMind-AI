@@ -41,7 +41,7 @@ export async function enqueueJob({
   currentStep = "Queued"
 }: {
   notebookId: string;
-  userId?: string | null;
+  userId: string;
   type: JobType;
   metadata?: Prisma.InputJsonValue;
   maxAttempts?: number;
@@ -50,7 +50,7 @@ export async function enqueueJob({
   const job = await prisma.job.create({
     data: {
       notebookId,
-      userId: userId ?? null,
+      userId,
       type,
       status: "QUEUED",
       progress: 0,

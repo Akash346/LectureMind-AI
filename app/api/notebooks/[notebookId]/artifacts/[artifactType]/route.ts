@@ -7,6 +7,7 @@ import {
   normalizeArtifactLanguage
 } from "@/lib/ai/schemas";
 import { getApiUser } from "@/lib/api-auth";
+import { prisma } from "@/lib/prisma";
 
 const paramsSchema = z.object({
   notebookId: z.string().min(1),
@@ -30,7 +31,11 @@ export async function GET(
   }
 
   const url = new URL(request.url);
-  const language = normalizeArtifactLanguage(url.searchParams.get("language"));
+  const language = await resolveLanguage({
+    notebookId: parsedParams.data.notebookId,
+    userId: user.id,
+    requestedLanguage: url.searchParams.get("language")
+  });
   const artifacts = await listArtifacts({
     notebookId: parsedParams.data.notebookId,
     userId: user.id,
@@ -48,4 +53,30 @@ export async function GET(
       (artifact) => artifact.type === parsedParams.data.artifactType
     )
   });
+}
+
+async function resolveLanguage({
+  notebookId,
+  userId,
+  requestedLanguage
+}: {
+  notebookId: string;
+  userId: string;
+  requestedLanguage: string | null;
+}) {
+  if (requestedLanguage) {
+    return normalizeArtifactLanguage(requestedLanguage);
+  }
+
+  const notebook = await prisma.notebook.findFirst({
+    where: {
+      id: notebookId,
+      userId
+    },
+    select: {
+      language: true
+    }
+  });
+
+  return normalizeArtifactLanguage(notebook?.language);
 }

@@ -6,6 +6,7 @@ import {
   isEmbeddingConfigured
 } from "@/lib/ai/embeddings";
 import { getApiUser } from "@/lib/api-auth";
+import { logNotebookOwnerDebug } from "@/lib/auth-debug";
 import { getAzureSearchConfig } from "@/lib/config/server-env";
 import { enqueueJob, serializeJob } from "@/lib/jobs/job-store";
 import { runJobById } from "@/lib/jobs/job-runner";
@@ -83,6 +84,7 @@ export async function POST(
     },
     select: {
       id: true,
+      userId: true,
       status: true,
       _count: {
         select: {
@@ -98,6 +100,13 @@ export async function POST(
       { status: 404 }
     );
   }
+
+  logNotebookOwnerDebug({
+    event: "api_notebook_index_post",
+    sessionUserId: user.id,
+    notebookId: notebook.id,
+    notebookOwnerId: notebook.userId
+  });
 
   if (notebook.status !== "READY" || notebook._count.evidenceSegments === 0) {
     return NextResponse.json(
@@ -301,6 +310,7 @@ export async function GET(
     },
     select: {
       id: true,
+      userId: true,
       status: true,
       evidenceSegments: {
         select: {
@@ -326,6 +336,13 @@ export async function GET(
       { status: 404 }
     );
   }
+
+  logNotebookOwnerDebug({
+    event: "api_notebook_index_get",
+    sessionUserId: user.id,
+    notebookId: notebook.id,
+    notebookOwnerId: notebook.userId
+  });
 
   const searchConfig = getAzureSearchConfig();
   const searchConfigured = isSearchConfigured();

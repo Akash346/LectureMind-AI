@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { normalizeArtifactLanguage } from "@/lib/ai/schemas";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 
@@ -52,7 +53,9 @@ export default async function NewNotebookPage() {
           </CardHeader>
           <CardContent>
             <NewNotebookForm
-              defaultLanguage={preference?.defaultLanguage ?? "en"}
+              defaultLanguage={normalizeArtifactLanguage(
+                preference?.defaultLanguage
+              )}
             />
           </CardContent>
         </Card>

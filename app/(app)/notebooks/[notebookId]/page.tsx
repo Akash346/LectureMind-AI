@@ -4,6 +4,7 @@ import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import type { StudioArtifact } from "@/components/workspace/artifacts/types";
 import { aiErrorCopy } from "@/lib/ai/errors";
 import { normalizeArtifactLanguage } from "@/lib/ai/schemas";
+import { logNotebookOwnerDebug } from "@/lib/auth-debug";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
@@ -54,6 +55,13 @@ export default async function WorkspacePage({
   if (!notebook) {
     notFound();
   }
+
+  logNotebookOwnerDebug({
+    event: "workspace_notebook_loaded",
+    sessionUserId: user.id,
+    notebookId: notebook.id,
+    notebookOwnerId: notebook.userId
+  });
 
   return (
     <WorkspaceShell

@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+import {
+  outputLanguageCodes,
+  outputLanguageLabels,
+  normalizeOutputLanguage
+} from "@/lib/languages";
+
 export const artifactTypes = [
   "OUTLINE",
   "SUMMARY_SHORT",
@@ -18,24 +24,14 @@ export const generateArtifactTypeSchema = z.enum(generateArtifactTypes);
 export type ArtifactType = z.infer<typeof artifactTypeSchema>;
 export type GenerateArtifactType = z.infer<typeof generateArtifactTypeSchema>;
 
-export const languageCodes = ["en", "es", "hi", "te", "fr", "ar"] as const;
+export const languageCodes = outputLanguageCodes;
 export const languageSchema = z.enum(languageCodes);
 export type LanguageCode = z.infer<typeof languageSchema>;
 
-export const languageNames: Record<LanguageCode, string> = {
-  en: "English",
-  es: "Spanish",
-  hi: "Hindi",
-  te: "Telugu",
-  fr: "French",
-  ar: "Arabic"
-};
+export const languageNames: Record<LanguageCode, string> = outputLanguageLabels;
 
 export function normalizeArtifactLanguage(value?: string | null): LanguageCode {
-  const normalized = value?.trim().toLowerCase();
-  const parsed = languageSchema.safeParse(normalized);
-
-  return parsed.success ? parsed.data : "en";
+  return normalizeOutputLanguage(value);
 }
 
 export const citationSchema = z
@@ -535,19 +531,19 @@ export function parseArtifactJson(
 export function getArtifactJsonSchemaDescription(artifactType: ArtifactType) {
   switch (artifactType) {
     case "OUTLINE":
-      return `{"title":"string","language":"en","sections":[{"heading":"string","summary":"string","citations":[Citation],"children":[{"heading":"string","summary":"string","citations":[Citation]}]}]}`;
+      return `{"title":"string","language":"target-language-code","sections":[{"heading":"string","summary":"string","citations":[Citation],"children":[{"heading":"string","summary":"string","citations":[Citation]}]}]}`;
     case "SUMMARY_SHORT":
-      return `{"title":"90-second summary","language":"en","bullets":[{"text":"string","citations":[Citation]}]}`;
+      return `{"title":"90-second summary","language":"target-language-code","bullets":[{"text":"string","citations":[Citation]}]}`;
     case "SUMMARY_MEDIUM":
-      return `{"title":"5-minute summary","language":"en","sections":[{"heading":"string","text":"string","citations":[Citation]}]}`;
+      return `{"title":"5-minute summary","language":"target-language-code","sections":[{"heading":"string","text":"string","citations":[Citation]}]}`;
     case "STUDY_GUIDE":
-      return `{"title":"string","language":"en","overview":{"text":"string","citations":[Citation]},"keyConcepts":[{"term":"string","explanation":"string","whyItMatters":"string","citations":[Citation]}],"importantDetails":[{"text":"string","citations":[Citation]}],"examples":[{"text":"string","citations":[Citation]}],"commonMistakes":[{"mistake":"string","correction":"string","citations":[Citation]}],"reviewPlan":[{"step":"string","citations":[Citation]}]}`;
+      return `{"title":"string","language":"target-language-code","overview":{"text":"string","citations":[Citation]},"keyConcepts":[{"term":"string","explanation":"string","whyItMatters":"string","citations":[Citation]}],"importantDetails":[{"text":"string","citations":[Citation]}],"examples":[{"text":"string","citations":[Citation]}],"commonMistakes":[{"mistake":"string","correction":"string","citations":[Citation]}],"reviewPlan":[{"step":"string","citations":[Citation]}]}`;
     case "FLASHCARDS":
-      return `{"title":"Flashcards","language":"en","cards":[{"front":"string","back":"string","difficulty":"easy|medium|hard","citations":[Citation]}]}`;
+      return `{"title":"Flashcards","language":"target-language-code","cards":[{"front":"string","back":"string","difficulty":"easy|medium|hard","citations":[Citation]}]}`;
     case "QUIZ":
-      return `{"title":"Quiz","language":"en","questions":[{"question":"string","choices":[{"id":"A","text":"string"},{"id":"B","text":"string"},{"id":"C","text":"string"},{"id":"D","text":"string"}],"correctChoiceId":"A|B|C|D","explanation":"string","difficulty":"easy|medium|hard","citations":[Citation]}]}`;
+      return `{"title":"Quiz","language":"target-language-code","questions":[{"question":"string","choices":[{"id":"A","text":"string"},{"id":"B","text":"string"},{"id":"C","text":"string"},{"id":"D","text":"string"}],"correctChoiceId":"A|B|C|D","explanation":"string","difficulty":"easy|medium|hard","citations":[Citation]}]}`;
     case "MIND_MAP":
-      return `{"title":"Knowledge Map","language":"en","nodes":[{"id":"string","label":"string","type":"main|concept|detail|example","citations":[Citation]}],"edges":[{"source":"node-id","target":"node-id","label":"string"}]}`;
+      return `{"title":"Knowledge Map","language":"target-language-code","nodes":[{"id":"string","label":"string","type":"main|concept|detail|example","citations":[Citation]}],"edges":[{"source":"node-id","target":"node-id","label":"string"}]}`;
   }
 }
 
@@ -556,18 +552,18 @@ export function getModelArtifactJsonSchemaDescription(
 ) {
   switch (artifactType) {
     case "OUTLINE":
-      return `{"title":"string","language":"en","sections":[{"heading":"string","summary":"string","citations":["C1"],"children":[{"heading":"string","summary":"string","citations":["C2"]}]}]}`;
+      return `{"title":"string","language":"target-language-code","sections":[{"heading":"string","summary":"string","citations":["C1"],"children":[{"heading":"string","summary":"string","citations":["C2"]}]}]}`;
     case "SUMMARY_SHORT":
-      return `{"title":"90-second summary","language":"en","bullets":[{"text":"string","citations":["C1","C2"]}]}`;
+      return `{"title":"90-second summary","language":"target-language-code","bullets":[{"text":"string","citations":["C1","C2"]}]}`;
     case "SUMMARY_MEDIUM":
-      return `{"title":"5-minute summary","language":"en","sections":[{"heading":"string","text":"string","citations":["C1","C2"]}]}`;
+      return `{"title":"5-minute summary","language":"target-language-code","sections":[{"heading":"string","text":"string","citations":["C1","C2"]}]}`;
     case "STUDY_GUIDE":
-      return `{"title":"string","language":"en","overview":{"text":"string","citations":["C1"]},"keyConcepts":[{"term":"string","explanation":"string","whyItMatters":"string","citations":["C2"]}],"importantDetails":[{"text":"string","citations":["C3"]}],"examples":[{"text":"string","citations":["C4"]}],"commonMistakes":[{"mistake":"string","correction":"string","citations":["C5"]}],"reviewPlan":[{"step":"string","citations":["C6"]}]}`;
+      return `{"title":"string","language":"target-language-code","overview":{"text":"string","citations":["C1"]},"keyConcepts":[{"term":"string","explanation":"string","whyItMatters":"string","citations":["C2"]}],"importantDetails":[{"text":"string","citations":["C3"]}],"examples":[{"text":"string","citations":["C4"]}],"commonMistakes":[{"mistake":"string","correction":"string","citations":["C5"]}],"reviewPlan":[{"step":"string","citations":["C6"]}]}`;
     case "FLASHCARDS":
-      return `{"title":"Flashcards","language":"en","cards":[{"front":"string","back":"string","difficulty":"easy|medium|hard","citations":["C1"]}]}`;
+      return `{"title":"Flashcards","language":"target-language-code","cards":[{"front":"string","back":"string","difficulty":"easy|medium|hard","citations":["C1"]}]}`;
     case "QUIZ":
-      return `{"title":"Quiz","language":"en","questions":[{"question":"string","choices":[{"id":"A","text":"string"},{"id":"B","text":"string"},{"id":"C","text":"string"},{"id":"D","text":"string"}],"correctChoiceId":"A|B|C|D","explanation":"string","difficulty":"easy|medium|hard","citations":["C1"]}]}`;
+      return `{"title":"Quiz","language":"target-language-code","questions":[{"question":"string","choices":[{"id":"A","text":"string"},{"id":"B","text":"string"},{"id":"C","text":"string"},{"id":"D","text":"string"}],"correctChoiceId":"A|B|C|D","explanation":"string","difficulty":"easy|medium|hard","citations":["C1"]}]}`;
     case "MIND_MAP":
-      return `{"title":"Knowledge Map","language":"en","nodes":[{"id":"string","label":"string","type":"main|concept|detail|example","citations":["C1"]}],"edges":[{"source":"node-id","target":"node-id","label":"string"}]}`;
+      return `{"title":"Knowledge Map","language":"target-language-code","nodes":[{"id":"string","label":"string","type":"main|concept|detail|example","citations":["C1"]}],"edges":[{"source":"node-id","target":"node-id","label":"string"}]}`;
   }
 }

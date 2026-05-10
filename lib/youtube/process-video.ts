@@ -25,6 +25,7 @@ import { parseYouTubeUrl } from "@/lib/youtube/url";
 
 const DEFAULT_MAX_VIDEO_DURATION_SEC = 3 * 60 * 60;
 const FRESH_PROCESSING_WINDOW_MS = 15 * 60 * 1000;
+const DEFAULT_TRANSCRIPT_LANGUAGE = "en";
 
 const fallbackEligibleErrors = new Set<VideoErrorType>([
   "NO_CAPTIONS",
@@ -456,7 +457,7 @@ async function runNodeCaptionIngestion({
 
   const transcript = await fetchTranscriptSegments({
     videoId: parsedUrl.videoId,
-    preferredLanguage: notebook.language
+    preferredLanguage: DEFAULT_TRANSCRIPT_LANGUAGE
   });
 
   await updateJob(job.id, {
@@ -475,7 +476,7 @@ async function runNodeCaptionIngestion({
     asrUsed: false,
     metadata,
     segments: transcript.map((segment) =>
-      mapNodeTranscriptSegment(segment, notebook.language)
+      mapNodeTranscriptSegment(segment)
     ),
     diagnostics: {
       engine: "node-transcript",
@@ -518,7 +519,7 @@ async function runWorkerIngestion({
     notebookId: notebook.id,
     videoUrl: parsedUrl.normalizedUrl,
     videoId: parsedUrl.videoId,
-    preferredLanguage: notebook.language,
+    preferredLanguage: DEFAULT_TRANSCRIPT_LANGUAGE,
     allowAsrFallback: isAzureSpeechFallbackEnabled(),
     maxDurationSeconds
   });
@@ -552,7 +553,7 @@ async function runWorkerIngestion({
       text: segment.text,
       sourceType: segment.sourceType,
       confidence: segment.confidence,
-      language: segment.language ?? notebook.language,
+      language: segment.language ?? DEFAULT_TRANSCRIPT_LANGUAGE,
       extractionEngine: segment.extractionEngine,
       rawSource: segment.rawSource
     })),
@@ -561,8 +562,7 @@ async function runWorkerIngestion({
 }
 
 function mapNodeTranscriptSegment(
-  segment: TranscriptSegment,
-  language: string
+  segment: TranscriptSegment
 ): IngestionSuccess["segments"][number] {
   const isAutoCaption = segment.sourceType === "AUTO_CAPTION";
 
@@ -572,7 +572,7 @@ function mapNodeTranscriptSegment(
     text: segment.text,
     sourceType: segment.sourceType,
     confidence: segment.confidence,
-    language,
+    language: segment.language ?? DEFAULT_TRANSCRIPT_LANGUAGE,
     extractionEngine: "node-transcript",
     rawSource: isAutoCaption ? "auto-caption" : "manual-caption"
   };

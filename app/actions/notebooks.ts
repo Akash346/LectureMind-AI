@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { logNotebookOwnerDebug } from "@/lib/auth-debug";
+import { deleteNotebookForUser } from "@/lib/notebooks/delete-notebook";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { isVideoProcessingError } from "@/lib/video-errors";
@@ -55,6 +57,13 @@ export async function createNotebook(
     }
   });
 
+  logNotebookOwnerDebug({
+    event: "notebook_created",
+    sessionUserId: user.id,
+    notebookId: notebook.id,
+    notebookOwnerId: user.id
+  });
+
   revalidatePath("/dashboard");
   redirect(`/notebooks/${notebook.id}`);
 }
@@ -67,11 +76,9 @@ export async function deleteNotebook(formData: FormData) {
     return;
   }
 
-  await prisma.notebook.deleteMany({
-    where: {
-      id: notebookId,
-      userId: user.id
-    }
+  await deleteNotebookForUser({
+    notebookId,
+    userId: user.id
   });
 
   revalidatePath("/dashboard");

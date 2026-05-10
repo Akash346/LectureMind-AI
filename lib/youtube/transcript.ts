@@ -20,6 +20,7 @@ export type TranscriptSegment = {
   text: string;
   sourceType: "CAPTION" | "AUTO_CAPTION";
   confidence: number;
+  language?: string | null;
 };
 
 type CaptionTrack = {
@@ -108,7 +109,10 @@ async function fetchDirectYouTubeTranscript(
     });
   }
 
-  return normalized;
+  return normalized.map((segment) => ({
+    ...segment,
+    language: track.languageCode ?? preferredLanguage
+  }));
 }
 
 async function fetchYoutubeTranscriptFallback(
@@ -136,7 +140,10 @@ async function fetchYoutubeTranscriptFallback(
       });
     }
 
-    return normalized;
+    return normalized.map((segment) => ({
+      ...segment,
+      language: preferredLanguage
+    }));
   } catch (error) {
     if (error instanceof YoutubeTranscriptTooManyRequestError) {
       throw new VideoProcessingError({

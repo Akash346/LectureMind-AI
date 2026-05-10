@@ -67,13 +67,11 @@ export async function retrieveLectureContext({
   userId,
   notebookId,
   query,
-  language,
   topK = DEFAULT_TOP_K
 }: {
   userId: string;
   notebookId: string;
   query: string;
-  language?: string | null;
   topK?: number;
 }): Promise<RetrieveLectureContextResult> {
   if (!validateRetrievalQuery(query)) {
@@ -170,7 +168,6 @@ export async function retrieveLectureContext({
         notebookId,
         userId,
         query,
-        language,
         topK: normalizedTopK
       });
       const chunks = canonicalizeHits({

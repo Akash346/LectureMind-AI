@@ -1,8 +1,8 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-
-import { deleteNotebook } from "@/app/actions/notebooks";
+import { useRouter } from "next/navigation";
+import { useState, type MouseEvent } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +23,54 @@ export function DeleteNotebookDialog({
   notebookId: string;
   title: string;
 }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function openDialog(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    setError(null);
+    setOpen(true);
+  }
+
+  async function confirmDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    setPending(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/notebooks/${notebookId}`, {
+        method: "DELETE"
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+
+      if (!response.ok) {
+        setError(payload?.error ?? "Could not delete this notebook.");
+        return;
+      }
+
+      setOpen(false);
+      router.refresh();
+    } catch {
+      setError(
+        "Could not delete this notebook. Check your connection and try again."
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button
           aria-label={`Delete ${title}`}
+          onClick={openDialog}
           size="icon"
           type="button"
           variant="ghost"
@@ -37,18 +80,26 @@ export function DeleteNotebookDialog({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete notebook?</AlertDialogTitle>
+          <AlertDialogTitle>Delete this notebook?</AlertDialogTitle>
           <AlertDialogDescription>
-            This removes the notebook and its placeholder artifacts. This action
-            cannot be undone.
+            This will remove its transcript, chat history, and study materials.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {error ? (
+          <p aria-live="polite" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <form action={deleteNotebook}>
-            <input name="notebookId" type="hidden" value={notebookId} />
-            <AlertDialogAction type="submit">Delete</AlertDialogAction>
-          </form>
+          <AlertDialogCancel
+            disabled={pending}
+            onClick={(event) => event.stopPropagation()}
+          >
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction disabled={pending} onClick={confirmDelete}>
+            {pending ? "Deleting..." : "Delete"}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

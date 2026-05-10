@@ -51,23 +51,28 @@ export async function POST(
     return NextResponse.json({ error: "Invalid artifact request." }, { status: 400 });
   }
 
-  const language = normalizeArtifactLanguage(parsedBody.data.language);
+  const notebook = await prisma.notebook.findFirst({
+    where: {
+      id: parsedParams.data.notebookId,
+      userId: user.id
+    },
+    select: {
+      id: true,
+      language: true
+    }
+  });
+
+  if (!notebook) {
+    return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
+  }
+
+  const language = normalizeArtifactLanguage(
+    parsedBody.data.language ?? notebook.language
+  );
   const requestedTypes = getRequestedTypes(parsedBody.data);
 
   try {
     if (parsedBody.data.mode === "async") {
-      const notebook = await prisma.notebook.findFirst({
-        where: {
-          id: parsedParams.data.notebookId,
-          userId: user.id
-        },
-        select: { id: true }
-      });
-
-      if (!notebook) {
-        return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
-      }
-
       const job = await enqueueJob({
         notebookId: notebook.id,
         userId: user.id,

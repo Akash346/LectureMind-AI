@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getApiUser } from "@/lib/api-auth";
+import { logNotebookOwnerDebug } from "@/lib/auth-debug";
 import { enqueueNotebookProcessing } from "@/lib/ingestion/local-queue";
 import { prisma } from "@/lib/prisma";
 
@@ -38,6 +39,7 @@ export async function POST(
     },
     select: {
       id: true,
+      userId: true,
       status: true
     }
   });
@@ -51,6 +53,13 @@ export async function POST(
   if (!notebook) {
     return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
   }
+
+  logNotebookOwnerDebug({
+    event: "api_notebook_process",
+    sessionUserId: user.id,
+    notebookId: notebook.id,
+    notebookOwnerId: notebook.userId
+  });
 
   if (notebook.status === "READY" && !force) {
     return NextResponse.json({

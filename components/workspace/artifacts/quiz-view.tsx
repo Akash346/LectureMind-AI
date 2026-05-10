@@ -8,13 +8,10 @@ import { Button } from "@/components/ui/button";
 import type { QuizArtifact } from "@/lib/ai/schemas";
 import { cn } from "@/lib/utils";
 
-import { CitationList } from "./citation-chip";
 import type { CitationProps } from "./types";
 
 export function QuizView({
-  artifact,
-  evidenceById,
-  onSeek
+  artifact
 }: {
   artifact: QuizArtifact;
 } & Omit<CitationProps, "citations">) {
@@ -97,11 +94,6 @@ export function QuizView({
                   Explanation
                 </p>
                 <p className="mt-1 text-sm leading-6">{question.explanation}</p>
-                <CitationList
-                  citations={question.citations}
-                  evidenceById={evidenceById}
-                  onSeek={onSeek}
-                />
               </div>
             ) : null}
           </div>

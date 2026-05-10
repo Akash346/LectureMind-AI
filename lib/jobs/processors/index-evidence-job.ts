@@ -5,6 +5,10 @@ import { updateJobProgress } from "@/lib/jobs/job-store";
 import { indexEvidenceSegments } from "@/lib/search/index-evidence";
 
 export async function processIndexEvidenceJob(job: Job) {
+  if (!job.userId) {
+    throw new JobProcessorError({ code: "NOTEBOOK_NOT_FOUND" });
+  }
+
   await updateJobProgress({
     jobId: job.id,
     progressPercent: 5,

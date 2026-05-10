@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getApiUser } from "@/lib/api-auth";
+import { logNotebookOwnerDebug } from "@/lib/auth-debug";
 import { prisma } from "@/lib/prisma";
 
 const paramsSchema = z.object({
@@ -30,13 +31,21 @@ export async function GET(
       userId: user.id
     },
     select: {
-      id: true
+      id: true,
+      userId: true
     }
   });
 
   if (!notebook) {
     return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
   }
+
+  logNotebookOwnerDebug({
+    event: "api_notebook_evidence",
+    sessionUserId: user.id,
+    notebookId: notebook.id,
+    notebookOwnerId: notebook.userId
+  });
 
   const evidence = await prisma.evidenceSegment.findMany({
     where: {
