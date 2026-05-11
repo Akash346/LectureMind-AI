@@ -46,6 +46,7 @@ NEXTAUTH_URL="http://localhost:3000"
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
 
+LECTUREMIND_WORKER_URL="http://localhost:8000"
 PYTHON_WORKER_URL="http://localhost:8000"
 INGESTION_ENGINE="hybrid"
 AZURE_SPEECH_KEY=""
@@ -88,7 +89,7 @@ MISTRAL_OCR_MODEL="mistral-document-ai-2512"
 
 `.env.example` is documentation only. Next.js and the verification scripts read `.env`; `.env.example` cannot override local secrets or runtime config.
 
-`INGESTION_ENGINE=node` uses only the Phase 2 Node caption path. `worker` uses only the Python worker. `hybrid` tries Node captions first, then calls the worker when captions are missing or temporarily unavailable.
+`INGESTION_ENGINE=node` uses only the Phase 2 Node caption path. `worker` uses only the Python worker. `hybrid` tries Node captions first, then calls the worker when captions are missing or temporarily unavailable. `LECTUREMIND_WORKER_URL` is the preferred server-side worker URL for Azure Container Apps and production deployments; `PYTHON_WORKER_URL` remains accepted as a local legacy alias.
 
 For Phase 4 artifact generation and Phase 5 chat, set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and at least one of `AZURE_OPENAI_DEPLOYMENT_FAST` or `AZURE_OPENAI_DEPLOYMENT_STRONG`. If these are missing, transcript processing and local retrieval still work, but AI outputs fail safely.
 

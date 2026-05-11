@@ -68,6 +68,8 @@ Install `ffmpeg` and keep it on `PATH` before testing Azure Speech fallback. If 
 ## Environment
 
 ```bash
+LECTUREMIND_WORKER_URL=http://localhost:8000
+# Legacy alias still accepted for local installs:
 PYTHON_WORKER_URL=http://localhost:8000
 INGESTION_ENGINE=hybrid
 AZURE_SPEECH_KEY=

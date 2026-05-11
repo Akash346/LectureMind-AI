@@ -83,7 +83,7 @@ const WORKER_TIMEOUT_MS = 20 * 60 * 1000;
 export async function processWithWorker(
   input: WorkerProcessInput
 ): Promise<WorkerProcessResult> {
-  const workerUrl = process.env.PYTHON_WORKER_URL?.trim() || DEFAULT_WORKER_URL;
+  const workerUrl = getWorkerUrl();
   const endpoint = new URL("/process-youtube", workerUrl);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), WORKER_TIMEOUT_MS);
@@ -146,5 +146,41 @@ export async function processWithWorker(
     });
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+export function getWorkerUrl() {
+  const configured =
+    readWorkerEnv("LECTUREMIND_WORKER_URL") ??
+    readWorkerEnv("PYTHON_WORKER_URL");
+
+  if (configured) {
+    return normalizeWorkerUrl(configured);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new VideoProcessingError({
+      type: "WORKER_UNAVAILABLE",
+      technicalMessage:
+        "LECTUREMIND_WORKER_URL is not configured in production."
+    });
+  }
+
+  return DEFAULT_WORKER_URL;
+}
+
+function readWorkerEnv(key: string) {
+  const value = process.env[key]?.trim();
+  return value ? value : null;
+}
+
+function normalizeWorkerUrl(value: string) {
+  try {
+    return new URL(value).toString().replace(/\/+$/, "");
+  } catch {
+    throw new VideoProcessingError({
+      type: "WORKER_UNAVAILABLE",
+      technicalMessage: "Configured worker URL is not a valid URL."
+    });
   }
 }
