@@ -26,7 +26,7 @@ export function FacultyAccessibilityUploadView({
   sessionId: string;
   report?: FacultyAccessibilityRemediation | null;
   docxArtifactId?: string | null;
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
 }) {
   const addUpload = useFacultyStore((state) => state.addUpload);
   const updateUpload = useFacultyStore((state) => state.updateUpload);
@@ -96,7 +96,7 @@ export function FacultyAccessibilityUploadView({
       }
       updateUpload(uploadPayload.uploadId, { status: "complete" });
       setActiveStep(STEPS.length);
-      onComplete();
+      void Promise.resolve(onComplete()).catch(() => undefined);
     } catch (caught) {
       updateUpload(persistedUploadId ?? optimisticId, { status: "failed" });
       setError(

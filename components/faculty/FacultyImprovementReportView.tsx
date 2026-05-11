@@ -1,7 +1,10 @@
 "use client";
 
 import { FacultyCitationChip } from "@/components/faculty/FacultyCitationChip";
-import type { FacultyImprovementReport } from "@/lib/faculty/prompts";
+import {
+  FacultyImprovementReportSchema,
+  type FacultyImprovementReport
+} from "@/lib/faculty/prompts";
 
 export function FacultyImprovementReportView({
   report
@@ -9,15 +12,30 @@ export function FacultyImprovementReportView({
   report?: FacultyImprovementReport | null;
 }) {
   if (!report) return null;
+  const parsedReport = FacultyImprovementReportSchema.safeParse(report);
+
+  if (!parsedReport.success) {
+    return (
+      <div className="rounded-lg border border-lm-amber/20 bg-lm-amber/10 p-4 text-sm text-black/70 dark:text-white/70">
+        This saved improvement report could not be displayed. Please regenerate it.
+      </div>
+    );
+  }
+
+  const displayReport = parsedReport.data;
 
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-black/10 bg-black/[0.03] p-4 dark:border-white/10 dark:bg-white/[0.04]">
         <h3 className="font-space-grotesk text-lg font-semibold">Summary</h3>
-        <p className="mt-2 text-sm leading-6">{report.summary?.overall_quality}</p>
-        <p className="mt-2 text-sm font-medium">Top priority: {report.summary?.top_priority}</p>
+        <p className="mt-2 text-sm leading-6">
+          {displayReport.summary.overall_quality}
+        </p>
+        <p className="mt-2 text-sm font-medium">
+          Top priority: {displayReport.summary.top_priority}
+        </p>
       </div>
-      {report.sections.map((section) => (
+      {displayReport.sections.map((section) => (
         <section key={section.section_title} className="space-y-3">
           <h3 className="font-space-grotesk text-lg font-semibold">
             {section.section_title}

@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { FacultyAccessibilityUploadView } from "@/components/faculty/FacultyAccessibilityUploadView";
 import { FacultyBiasReportView } from "@/components/faculty/FacultyBiasReportView";
 import { FacultyImprovementReportView } from "@/components/faculty/FacultyImprovementReportView";
-import { useFacultyStore } from "@/lib/faculty/store";
-import type {
-  FacultyAccessibilityRemediation,
-  FacultyBiasReport,
-  FacultyImprovementReport
+import { useFacultyStore, type FacultyArtifactType } from "@/lib/faculty/store";
+import {
+  FacultyBiasReportSchema,
+  FacultyImprovementReportSchema,
+  type FacultyAccessibilityRemediation,
+  type FacultyBiasReport,
+  type FacultyImprovementReport
 } from "@/lib/faculty/prompts";
 
 export type FacultyArtifactRecord = {
@@ -31,7 +33,7 @@ export function FacultyArtifactPanel({
 }: {
   sessionId: string;
   artifacts: FacultyArtifactRecord[];
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
 }) {
   const activeArtifact = useFacultyStore((state) => state.activeArtifact);
   const setActiveArtifact = useFacultyStore((state) => state.setActiveArtifact);
@@ -58,6 +60,7 @@ export function FacultyArtifactPanel({
   const artifact = artifacts.find((item) => item.type === backendType);
   const docxArtifact = artifacts.find((item) => item.type === "accessibility_docx");
   const report = revealed ?? artifact?.json ?? null;
+  const reportCanRender = canRenderReport(activeArtifact, report);
 
   async function generateReport() {
     if (activeArtifact === "accessibility") return;
@@ -87,14 +90,14 @@ export function FacultyArtifactPanel({
       }
 
       setRevealed(payload.report as FacultyImprovementReport | FacultyBiasReport);
-      onRefresh();
+      refreshSafely(onRefresh);
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
           : `${reportName} could not be generated. Please try again.`
       );
-      onRefresh();
+      refreshSafely(onRefresh);
     } finally {
       setLoading(false);
       setReportRunning(false);
@@ -111,7 +114,7 @@ export function FacultyArtifactPanel({
           <X className="h-4 w-4" />
         </Button>
       </div>
-      {activeArtifact !== "accessibility" && !report ? (
+      {activeArtifact !== "accessibility" && !reportCanRender ? (
         <Button disabled={loading} onClick={() => void generateReport()}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {loading
@@ -163,4 +166,22 @@ async function readJsonBody(response: Response) {
   } catch {
     return {};
   }
+}
+
+function refreshSafely(refresh: () => void | Promise<void>) {
+  void Promise.resolve(refresh()).catch(() => undefined);
+}
+
+function canRenderReport(
+  activeArtifact: FacultyArtifactType,
+  report: unknown
+) {
+  if (!report) return false;
+  if (activeArtifact === "improvement") {
+    return FacultyImprovementReportSchema.safeParse(report).success;
+  }
+  if (activeArtifact === "bias") {
+    return FacultyBiasReportSchema.safeParse(report).success;
+  }
+  return true;
 }

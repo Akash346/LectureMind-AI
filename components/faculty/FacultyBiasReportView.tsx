@@ -1,7 +1,10 @@
 "use client";
 
 import { FacultyCitationChip } from "@/components/faculty/FacultyCitationChip";
-import type { FacultyBiasReport } from "@/lib/faculty/prompts";
+import {
+  FacultyBiasReportSchema,
+  type FacultyBiasReport
+} from "@/lib/faculty/prompts";
 
 export function FacultyBiasReportView({
   report
@@ -9,17 +12,30 @@ export function FacultyBiasReportView({
   report?: FacultyBiasReport | null;
 }) {
   if (!report) return null;
+  const parsedReport = FacultyBiasReportSchema.safeParse(report);
+
+  if (!parsedReport.success) {
+    return (
+      <div className="rounded-lg border border-lm-amber/20 bg-lm-amber/10 p-4 text-sm text-black/70 dark:text-white/70">
+        This saved bias report could not be displayed. Please regenerate it.
+      </div>
+    );
+  }
+
+  const displayReport = parsedReport.data;
 
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-black/10 bg-black/[0.03] p-4 dark:border-white/10 dark:bg-white/[0.04]">
         <h3 className="font-space-grotesk text-lg font-semibold">Summary</h3>
-        <p className="mt-2 text-sm leading-6">{report.summary?.main_pattern}</p>
+        <p className="mt-2 text-sm leading-6">
+          {displayReport.summary.main_pattern}
+        </p>
         <p className="mt-2 text-sm font-medium">
-          First fix: {report.summary?.recommended_first_fix}
+          First fix: {displayReport.summary.recommended_first_fix}
         </p>
       </div>
-      {report.dimensions.map((dimension) => (
+      {displayReport.dimensions.map((dimension) => (
         <article
           key={`${dimension.dimension}-${dimension.transcript_anchor.reference}-${dimension.evidence_quote}`}
           className="rounded-lg border border-black/10 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.04]"

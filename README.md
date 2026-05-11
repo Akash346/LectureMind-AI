@@ -1,8 +1,8 @@
 # LectureMind AI
 
-LectureMind AI is a grounded lecture study workspace. Phase 6 keeps the working Phase 2/3 YouTube ingestion, Phase 4 artifact generation, and Phase 5 retrieval backbone, then rewires the active workspace so ingestion, Azure AI Search indexing, chat, artifacts, citations, and the refreshed study UI work together end to end.
+LectureMind AI is a grounded lecture study and faculty review workspace. Phase 6 keeps the working Phase 2/3 YouTube ingestion, Phase 4 artifact generation, and Phase 5 retrieval backbone, then rewires the active student workspace so ingestion, Azure AI Search indexing, chat, artifacts, citations, and the refreshed study UI work together end to end. Phase 7 adds a separate Faculty workspace for lecture review, improvement and bias reports, accessibility remediation, Mistral OCR, and service health checks.
 
-Audio/video overviews, reports, slide decks, and Canvas/faculty/provost workflows are still later phases.
+Audio/video overviews, slide decks, Canvas LMS integration, advanced analytics, and provost workflows are still later phases.
 
 ## Stack
 
@@ -17,6 +17,10 @@ Audio/video overviews, reports, slide decks, and Canvas/faculty/provost workflow
 - Azure OpenAI artifact generation with Zod validation and verifier checks
 - Azure OpenAI embeddings and Azure AI Search hybrid retrieval
 - Source-grounded chat and artifacts with deterministic citation verification
+- Faculty-only review sessions with isolated Azure Search namespaces
+- Azure OpenAI JSON schema structured outputs for Faculty reports
+- Mistral Document AI OCR for Faculty accessibility remediation
+- Azure Blob Storage for uploaded Faculty documents and generated DOCX files
 - Zustand for workspace pane state
 
 ## Local Setup
@@ -65,6 +69,19 @@ DEBUG_AI="false"
 AZURE_SEARCH_ENDPOINT=""
 AZURE_SEARCH_API_KEY=""
 AZURE_SEARCH_INDEX_NAME="lecturemind-evidence-dev"
+
+AZURE_STORAGE_CONNECTION_STRING=""
+AZURE_STORAGE_CONTAINER=""
+AZURE_STORAGE_FACULTY_CONTAINER="faculty-sessions"
+
+FACULTY_SESSION_TTL_MINUTES="120"
+FACULTY_HEARTBEAT_INTERVAL_SECONDS="30"
+FACULTY_SWEEP_SECRET=""
+FACULTY_PRIMARY_MODEL_DEPLOYMENT=""
+FACULTY_AZURE_SEARCH_INDEX_NAME="lecturemind-faculty-evidence-dev"
+MISTRAL_OCR_ENDPOINT=""
+MISTRAL_OCR_API_KEY=""
+MISTRAL_OCR_MODEL="mistral-document-ai-2512"
 ```
 
 `AZURE_SEARCH_INDEX_NAME` is preferred and defaults to `lecturemind-evidence-dev` only when neither index variable exists. The legacy `AZURE_AI_SEARCH_ENDPOINT`, `AZURE_AI_SEARCH_API_KEY`, and `AZURE_AI_SEARCH_INDEX` names are also accepted. If `.env` contains only `AZURE_AI_SEARCH_INDEX=lecturemind-index`, runtime uses `lecturemind-index` and reports `indexEnvSource: "AZURE_AI_SEARCH_INDEX"`.
@@ -76,6 +93,10 @@ AZURE_SEARCH_INDEX_NAME="lecturemind-evidence-dev"
 For Phase 4 artifact generation and Phase 5 chat, set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and at least one of `AZURE_OPENAI_DEPLOYMENT_FAST` or `AZURE_OPENAI_DEPLOYMENT_STRONG`. If these are missing, transcript processing and local retrieval still work, but AI outputs fail safely.
 
 For Azure AI Search indexing, also set `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`, `AZURE_SEARCH_ENDPOINT`, and `AZURE_SEARCH_API_KEY`. If these are missing, chat uses local lexical retrieval fallback over `EvidenceSegment` rows.
+
+For the Faculty workspace, set `FACULTY_PRIMARY_MODEL_DEPLOYMENT` to the Azure OpenAI deployment used for improvement, bias, chat, and accessibility remediation. If it is omitted, the app falls back to `AZURE_OPENAI_DEPLOYMENT_STRONG` and then `AZURE_OPENAI_DEPLOYMENT_FAST`.
+
+`MISTRAL_OCR_ENDPOINT` is posted to directly by the OCR client. Use the full Azure Foundry Mistral OCR endpoint, for example `https://<resource>.services.ai.azure.com/providers/mistral/azure/ocr`. The client does not append `/providers/mistral/azure/ocr` itself.
 
 4. Create the database and run migrations:
 
@@ -251,6 +272,37 @@ Workspace changes:
 
 Safe logs added in this phase include notebook creation, transcript readiness, indexing enqueue/start, Azure Search index readiness, upload batches, upload completion, retrieval source selection, chat retrieval, artifact retrieval, and summary variant generation/fetch events. Logs do not include secrets, raw transcripts, tokens, or user email.
 
+## Phase 7 Faculty Review Workspace
+
+Phase 7 adds a Faculty-only path that is isolated from Student notebooks and data. Faculty sessions are short-lived, heartbeat-managed, and backed by a separate Faculty workspace record, Faculty upload records, Faculty artifacts, Azure Search namespace, and Blob Storage container.
+
+Faculty flow:
+
+```text
+Faculty dashboard
+  -> create Faculty session with YouTube lecture URL
+  -> ingest transcript evidence into FacultyWorkspace
+  -> index Faculty segments in the Faculty Azure Search index
+  -> open workspace with embedded lecture video, transcript, chat, and report cards
+  -> generate Improvement or Bias report from retrieved lecture evidence
+  -> upload PDF/DOCX for Accessibility remediation
+  -> Mistral OCR extracts document structure
+  -> Azure OpenAI remediation produces accessible structure
+  -> generated DOCX is stored and downloaded from Faculty artifact storage
+```
+
+Report generation uses Azure OpenAI JSON schema structured outputs when the deployment supports `response_format: { type: "json_schema" }`. If an Azure deployment rejects JSON schema mode, Faculty reports fall back to `json_object` with strict JSON-only prompt instructions. Before validation, model output is sanitized by removing markdown fences, trimming whitespace, and slicing to the first JSON object envelope. A one-pass retry repairs malformed report output before returning a safe failure.
+
+Faculty report errors log `parseStage`, `rawModelOutputFirst500Chars`, and `rawModelOutputLast200Chars` so schema drift can be diagnosed without exposing raw model text in the UI. Successful report calls also log a short raw-output preview for observability.
+
+The Faculty workspace status poller is activity-aware:
+
+- Ingestion, indexing, report generation, and accessibility upload/remediation poll every 1 second.
+- Idle ready or failed workspaces poll every 30 seconds.
+- Faculty heartbeat remains a separate 30-second interval.
+
+`GET /api/faculty/health` checks real reachability for Mistral OCR, the primary Faculty model, embeddings, Faculty Azure Search index, and the Faculty Blob Storage container.
+
 ## Transcript Limitations
 
 - Node ingestion still only uses available YouTube captions or auto-captions.
@@ -285,8 +337,14 @@ Safe logs added in this phase include notebook creation, transcript readiness, i
 - Click a chat citation and confirm the video seeks.
 - Temporarily remove Azure AI Search env vars and confirm chat shows local retrieval fallback.
 - Temporarily remove Azure OpenAI chat env vars and confirm chat returns a safe not-configured error.
+- Create a Faculty session from a YouTube lecture and confirm the Faculty workspace reaches `ready`.
+- Confirm the Faculty lecture video embed renders above the transcript.
+- Generate Improvement and Bias reports and confirm structured sections/dimensions render without raw JSON text.
+- Upload a small PDF or DOCX to the Faculty Accessibility card and confirm the accessible DOCX downloads.
+- Confirm the Accessibility card shows the static "Powered by Mistral OCR" chip only on that card.
+- Confirm `/api/faculty/health` returns booleans for every Faculty dependency.
 
-More implementation details live in [docs/phase-2-youtube-ingestion.md](docs/phase-2-youtube-ingestion.md), [docs/phase-3-worker-asr-fallback.md](docs/phase-3-worker-asr-fallback.md), [docs/phase-4-ai-artifact-generation.md](docs/phase-4-ai-artifact-generation.md), [docs/phase-5-retrieval-chat.md](docs/phase-5-retrieval-chat.md), and [docs/phase-6-workspace-rewiring.md](docs/phase-6-workspace-rewiring.md).
+More implementation details live in [docs/phase-2-youtube-ingestion.md](docs/phase-2-youtube-ingestion.md), [docs/phase-3-worker-asr-fallback.md](docs/phase-3-worker-asr-fallback.md), [docs/phase-4-ai-artifact-generation.md](docs/phase-4-ai-artifact-generation.md), [docs/phase-5-retrieval-chat.md](docs/phase-5-retrieval-chat.md), [docs/phase-6-workspace-rewiring.md](docs/phase-6-workspace-rewiring.md), and [docs/phase-7-faculty-workspace.md](docs/phase-7-faculty-workspace.md).
 
 ## Auth Troubleshooting
 
@@ -360,6 +418,13 @@ npm run build
 - PostgreSQL-backed jobs for async artifact generation and indexing
 - Rewired workspace shell with artifact dock, side panel, video seek citations, New Chat shortcut, and profile menu
 - Configure Chat modal that saves user preferences
+- Faculty dashboard and short-lived Faculty session lifecycle
+- Faculty lecture ingestion, transcript display, embedded YouTube preview, and isolated Faculty indexing
+- Faculty chat grounded only in the active Faculty session evidence
+- Faculty Improvement and Bias reports with structured-output schema validation, sanitization, retry, and safe UI errors
+- Faculty Accessibility remediation with Mistral OCR and generated accessible DOCX downloads
+- Faculty dependency health endpoint with reachability checks
+- Activity-aware Faculty workspace polling with reduced idle status noise
 
 ## Later Phases
 
@@ -368,5 +433,5 @@ npm run build
 - Video overview
 - Slide deck generation
 - Canvas LMS integration
-- Faculty analytics
+- Advanced faculty analytics
 - Provost workflows
