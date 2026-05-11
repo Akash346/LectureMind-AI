@@ -9,7 +9,6 @@ import {
   type FacultyArtifactRecord
 } from "@/components/faculty/FacultyArtifactPanel";
 import { FacultyChatPane } from "@/components/faculty/FacultyChatPane";
-import { FacultyTranscriptUploadFallback } from "@/components/faculty/FacultyTranscriptUploadFallback";
 import { LectureVideoEmbed } from "@/components/faculty/LectureVideoEmbed";
 import { FacultySignoutButton } from "@/components/faculty/FacultySignoutButton";
 import { FacultyTranscriptPane } from "@/components/faculty/FacultyTranscriptPane";
@@ -96,7 +95,7 @@ export function FacultyWorkspace({ sessionId }: { sessionId: string }) {
   }, [sessionId]);
 
   const ready = payload?.status === "ready" && (payload.indexedCount ?? 0) > 0;
-  const showTranscriptFallback = Boolean(
+  const showIngestError = Boolean(
     payload &&
       !ready &&
       (payload.status === "failed" ||
@@ -143,13 +142,24 @@ export function FacultyWorkspace({ sessionId }: { sessionId: string }) {
             </div>
           </div>
           <LectureVideoEmbed videoId={payload?.videoId} />
-          {showTranscriptFallback ? (
-            <FacultyTranscriptUploadFallback
-              sessionId={sessionId}
-              ingestErrorCode={payload?.ingestErrorCode}
-              ingestErrorMessage={payload?.ingestErrorMessage}
-              onUploaded={refresh}
-            />
+          {showIngestError ? (
+            <section className="rounded-lg border border-amber-300/70 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-100">
+              <p className="font-medium">
+                YouTube transcript extraction was blocked for this lecture.
+              </p>
+              <p className="mt-2 opacity-90">
+                {payload?.ingestErrorCode === "LOGIN_REQUIRED" ||
+                payload?.ingestErrorCode === "AGE_RESTRICTED"
+                  ? "YouTube requested signed-in user verification, so backend ingestion could not access transcript/audio for this video in the current environment."
+                  : payload?.ingestErrorMessage ??
+                    "LectureMind could not read transcript evidence from YouTube for this link."}
+              </p>
+              {payload?.ingestErrorCode ? (
+                <p className="mt-2 font-mono text-xs opacity-75">
+                  Error code: {payload.ingestErrorCode}
+                </p>
+              ) : null}
+            </section>
           ) : null}
           <FacultyTranscriptPane transcriptText={payload?.transcriptText} />
           <FacultyChatPane sessionId={sessionId} ready={ready} />

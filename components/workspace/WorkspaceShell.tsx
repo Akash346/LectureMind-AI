@@ -217,8 +217,6 @@ export function WorkspaceShell({
                     <VideoPanel
                       errorMessage={status.errorMessage}
                       errorType={status.errorType}
-                      notebookId={activeChat.id}
-                      onTranscriptUploaded={refreshStatus}
                       status={status.status}
                       title={status.videoTitle ?? activeChat.title}
                       videoUrl={videoUrl}
