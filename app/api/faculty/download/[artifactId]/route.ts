@@ -25,14 +25,20 @@ export async function GET(
     return NextResponse.json({ error: "Missing Faculty session." }, { status: 400 });
   }
 
-  await assertFacultySession(sessionId);
+  const session = await assertFacultySession(sessionId);
   const artifact = await prisma.facultyArtifact.findFirst({
     where: {
       id: parsed.data.artifactId,
-      sessionId,
+      sessionId: session.id,
+      type: "accessibility_docx",
+      status: "complete",
       storageKey: {
         not: null
       }
+    },
+    select: {
+      storageKey: true,
+      title: true
     }
   });
 
@@ -41,12 +47,26 @@ export async function GET(
   }
 
   const blob = await downloadFacultyBlob(artifact.storageKey);
+  const filename = `${sanitizeDownloadFilename(
+    artifact.title ?? "faculty-accessibility-report"
+  )}.docx`;
+  const bytes = new ArrayBuffer(blob.buffer.byteLength);
+  new Uint8Array(bytes).set(blob.buffer);
 
-  return new NextResponse(new Uint8Array(blob.buffer), {
+  return new NextResponse(bytes, {
     headers: {
       "content-type": blob.contentType,
       "content-length": String(blob.size),
-      "content-disposition": `attachment; filename="${artifact.title ?? "faculty-artifact"}.docx"`
+      "content-disposition": `attachment; filename="${filename}"`
     }
   });
+}
+
+function sanitizeDownloadFilename(filename: string) {
+  const sanitized = filename
+    .replace(/["\r\n]/g, "")
+    .replace(/[\\/:*?<>|]/g, "-")
+    .trim();
+
+  return sanitized || "faculty-accessibility-report";
 }
