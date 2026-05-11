@@ -41,10 +41,13 @@ export async function GET(
         title: true,
         json: true,
         storageKey: true,
+        errorCode: true,
         errorMessage: true
       }
     })
   ]);
+
+  const ingestStatus = artifacts.find((artifact) => artifact.type === "lecture_ingest");
 
   return NextResponse.json({
     sessionId: parsed.data.sessionId,
@@ -55,6 +58,8 @@ export async function GET(
     transcriptText: workspace?.transcriptText ?? null,
     segmentCount: workspace?.segmentCount ?? 0,
     indexedCount: workspace?.indexedCount ?? 0,
+    ingestErrorCode: ingestStatus?.errorCode ?? null,
+    ingestErrorMessage: ingestStatus?.errorMessage ?? null,
     artifacts: artifacts.map((artifact) => ({
       id: artifact.id,
       type: artifact.type,
@@ -62,6 +67,7 @@ export async function GET(
       title: artifact.title,
       json: artifact.json,
       storageKey: artifact.storageKey,
+      errorCode: artifact.errorCode,
       errorMessage: artifact.errorMessage
     }))
   });

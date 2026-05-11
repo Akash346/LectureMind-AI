@@ -23,6 +23,7 @@ export type FacultyArtifactRecord = {
   title?: string | null;
   json?: unknown;
   storageKey?: string | null;
+  errorCode?: string | null;
   errorMessage?: string | null;
 };
 

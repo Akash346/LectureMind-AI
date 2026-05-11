@@ -9,6 +9,7 @@ import {
   type FacultyArtifactRecord
 } from "@/components/faculty/FacultyArtifactPanel";
 import { FacultyChatPane } from "@/components/faculty/FacultyChatPane";
+import { FacultyTranscriptUploadFallback } from "@/components/faculty/FacultyTranscriptUploadFallback";
 import { LectureVideoEmbed } from "@/components/faculty/LectureVideoEmbed";
 import { FacultySignoutButton } from "@/components/faculty/FacultySignoutButton";
 import { FacultyTranscriptPane } from "@/components/faculty/FacultyTranscriptPane";
@@ -27,6 +28,8 @@ type WorkspacePayload = {
   transcriptText?: string | null;
   segmentCount: number;
   indexedCount: number;
+  ingestErrorCode?: string | null;
+  ingestErrorMessage?: string | null;
   artifacts: FacultyArtifactRecord[];
 };
 
@@ -93,6 +96,13 @@ export function FacultyWorkspace({ sessionId }: { sessionId: string }) {
   }, [sessionId]);
 
   const ready = payload?.status === "ready" && (payload.indexedCount ?? 0) > 0;
+  const showTranscriptFallback = Boolean(
+    payload &&
+      !ready &&
+      (payload.status === "failed" ||
+        payload.ingestErrorCode ||
+        payload.segmentCount === 0)
+  );
   const statuses = Object.fromEntries(
     (payload?.artifacts ?? []).map((artifact) => [artifact.type, artifact.status])
   );
@@ -133,6 +143,14 @@ export function FacultyWorkspace({ sessionId }: { sessionId: string }) {
             </div>
           </div>
           <LectureVideoEmbed videoId={payload?.videoId} />
+          {showTranscriptFallback ? (
+            <FacultyTranscriptUploadFallback
+              sessionId={sessionId}
+              ingestErrorCode={payload?.ingestErrorCode}
+              ingestErrorMessage={payload?.ingestErrorMessage}
+              onUploaded={refresh}
+            />
+          ) : null}
           <FacultyTranscriptPane transcriptText={payload?.transcriptText} />
           <FacultyChatPane sessionId={sessionId} ready={ready} />
         </div>
