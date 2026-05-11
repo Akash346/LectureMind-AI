@@ -2,13 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { ingestFacultyTranscriptUpload } from "@/lib/faculty/ingest";
-import {
-  checkFacultyRateLimit,
-  facultyRateLimitResponse
-} from "@/lib/faculty/rate-limit";
 import { assertFacultySession } from "@/lib/faculty/session";
 
-const FACULTY_TRANSCRIPT_UPLOAD_WINDOW_MS = 10 * 60 * 1000;
 const MAX_TRANSCRIPT_FILE_BYTES = 5 * 1024 * 1024;
 
 const payloadSchema = z.object({
@@ -16,16 +11,6 @@ const payloadSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const rateLimit = checkFacultyRateLimit(request, {
-    route: "faculty_transcript_upload",
-    limit: 5,
-    windowMs: FACULTY_TRANSCRIPT_UPLOAD_WINDOW_MS
-  });
-
-  if (!rateLimit.allowed) {
-    return facultyRateLimitResponse(rateLimit);
-  }
-
   const formData = await readFormData(request);
   if (!formData.ok) {
     return NextResponse.json({ error: formData.error }, { status: 400 });
