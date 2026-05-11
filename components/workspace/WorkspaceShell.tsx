@@ -208,6 +208,7 @@ export function WorkspaceShell({
                   <section className="h-full overflow-y-auto p-4">
                     <VideoPanel
                       errorMessage={status.errorMessage}
+                      errorType={status.errorType}
                       status={status.status}
                       title={status.videoTitle ?? activeChat.title}
                       videoUrl={videoUrl}

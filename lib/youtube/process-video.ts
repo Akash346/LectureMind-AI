@@ -39,7 +39,12 @@ const fallbackEligibleErrors = new Set<VideoErrorType>([
   "TRANSCRIPT_UNAVAILABLE",
   "NETWORK_ERROR",
   "RATE_LIMITED",
-  "UNSUPPORTED_URL"
+  "UNSUPPORTED_URL",
+  // Production environments can receive transient YouTube gating states that
+  // look restricted even for public videos; allow worker fallback before failing.
+  "LOGIN_REQUIRED",
+  "VIDEO_UNAVAILABLE",
+  "AGE_RESTRICTED"
 ]);
 
 type IngestionEngine = "node" | "worker" | "hybrid";

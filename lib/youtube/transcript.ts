@@ -186,7 +186,12 @@ function canTryTranscriptFallback(error: VideoProcessingError) {
     error.type === "NO_CAPTIONS" ||
     error.type === "TRANSCRIPT_UNAVAILABLE" ||
     error.type === "NETWORK_ERROR" ||
-    error.type === "RATE_LIMITED"
+    error.type === "RATE_LIMITED" ||
+    // These sometimes show up under bot/proxy gating in production;
+    // try transcript-library fallback before hard failure.
+    error.type === "LOGIN_REQUIRED" ||
+    error.type === "VIDEO_UNAVAILABLE" ||
+    error.type === "AGE_RESTRICTED"
   );
 }
 

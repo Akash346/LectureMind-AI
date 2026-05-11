@@ -11,13 +11,15 @@ type VideoPanelProps = {
   title?: string;
   status?: string;
   errorMessage?: string | null;
+  errorType?: string | null;
 };
 
 export function VideoPanel({
   videoUrl,
   title,
   status,
-  errorMessage
+  errorMessage,
+  errorType
 }: VideoPanelProps) {
   const videoId = videoUrl ? extractYouTubeId(videoUrl) : null;
   const setPlayer = usePlayerStore((state) => state.setPlayer);
@@ -66,6 +68,9 @@ export function VideoPanel({
       <div className="flex aspect-video flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 px-6 text-center text-sm text-red-950 dark:border-red-900 dark:bg-red-950 dark:text-red-50">
         <p className="font-medium">Video could not be prepared.</p>
         {errorMessage ? <p className="mt-2 opacity-80">{errorMessage}</p> : null}
+        {errorType ? (
+          <p className="mt-2 font-mono text-xs opacity-70">Error code: {errorType}</p>
+        ) : null}
         <p className="mt-3 max-w-md opacity-80">
           You can still use the Demo Reviewer path from sign in to open a
           preloaded notebook with transcript evidence and artifacts ready.
