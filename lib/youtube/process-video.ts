@@ -341,7 +341,7 @@ export async function processNotebookVideo(
       segmentCount: evidenceRows.length
     };
   } catch (error) {
-    const safeError = normalizeVideoError(error);
+    const safeError = normalizeYoutubeChallengeError(normalizeVideoError(error));
 
     logIngestionEvent("youtube_process_failed", {
       notebookId,
@@ -964,6 +964,24 @@ function logIngestionEvent(
       ...fields
     })
   );
+}
+
+function normalizeYoutubeChallengeError(error: VideoProcessingError) {
+  const detail = error.technicalMessage?.toLowerCase() ?? "";
+
+  if (
+    error.type === "AGE_RESTRICTED" &&
+    (detail.includes("not a bot") ||
+      detail.includes("cookies-from-browser") ||
+      detail.includes("use --cookies"))
+  ) {
+    return new VideoProcessingError({
+      type: "LOGIN_REQUIRED",
+      technicalMessage: error.technicalMessage
+    });
+  }
+
+  return error;
 }
 
 function logIndexQueueEvent(
