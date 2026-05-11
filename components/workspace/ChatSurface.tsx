@@ -137,6 +137,12 @@ export function ChatSurface({
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const ready = isDemo || (notebookStatus === "READY" && evidenceCount > 0);
+  const waitingMessage =
+    notebookStatus === "FAILED"
+      ? "Transcript extraction failed for this video."
+      : notebookStatus === "READY" && evidenceCount === 0
+        ? "Transcript evidence is unavailable for this video."
+        : "Chat will unlock when transcript evidence is ready.";
 
   React.useEffect(() => {
     if (isDemo && demoMessages) {
@@ -258,7 +264,7 @@ export function ChatSurface({
             </div>
             {!ready ? (
               <p className="mb-5 max-w-md text-sm leading-6 text-muted-foreground">
-                Chat will unlock when transcript evidence is ready.
+                {waitingMessage}
               </p>
             ) : null}
             <div className="grid w-full max-w-2xl gap-3 md:grid-cols-3">

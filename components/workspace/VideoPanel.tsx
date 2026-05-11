@@ -63,23 +63,19 @@ export function VideoPanel({
     player?.playVideo?.();
   }, [seekRequest]);
 
-  if (status === "FAILED") {
-    return (
-      <div className="flex aspect-video flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 px-6 text-center text-sm text-red-950 dark:border-red-900 dark:bg-red-950 dark:text-red-50">
-        <p className="font-medium">Video could not be prepared.</p>
-        {errorMessage ? <p className="mt-2 opacity-80">{errorMessage}</p> : null}
-        {errorType ? (
-          <p className="mt-2 font-mono text-xs opacity-70">Error code: {errorType}</p>
-        ) : null}
-        <p className="mt-3 max-w-md opacity-80">
-          You can still use the Demo Reviewer path from sign in to open a
-          preloaded notebook with transcript evidence and artifacts ready.
-        </p>
-      </div>
-    );
-  }
-
   if (!videoId) {
+    if (status === "FAILED") {
+      return (
+        <div className="flex aspect-video flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 px-6 text-center text-sm text-red-950 dark:border-red-900 dark:bg-red-950 dark:text-red-50">
+          <p className="font-medium">Video could not be prepared.</p>
+          {errorMessage ? <p className="mt-2 opacity-80">{errorMessage}</p> : null}
+          {errorType ? (
+            <p className="mt-2 font-mono text-xs opacity-70">Error code: {errorType}</p>
+          ) : null}
+        </div>
+      );
+    }
+
     return (
       <div className="flex aspect-video items-center justify-center rounded-xl border border-black/10 bg-black/[0.03] text-sm text-black/50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/50">
         {status === "PENDING" || status === "PROCESSING"
@@ -107,35 +103,51 @@ export function VideoPanel({
     );
   }
 
-  return (
-    <div
-      className={[
-        "relative aspect-video overflow-hidden rounded-xl border border-black/10 bg-black transition-shadow dark:border-white/10",
-        isFlashing ? "shadow-[0_0_0_3px_rgba(245,181,68,0.45)]" : ""
-      ].join(" ")}
-    >
-      <YouTube
-        videoId={videoId}
-        className="absolute inset-0 h-full w-full"
-        iframeClassName="h-full w-full"
-        title={title}
-        onReady={(event: YouTubeEvent) => {
-          setPlayerError(false);
-          setPlayer(event.target);
-          const pendingSeek = usePlayerStore.getState().seekRequest;
+  const showTranscriptWarning = Boolean(
+    errorType &&
+      errorMessage &&
+      (status === "FAILED" || status === "READY")
+  );
 
-          if (pendingSeek) {
-            event.target.seekTo?.(pendingSeek.seconds, true);
-            event.target.playVideo?.();
-          }
-        }}
-        onError={() => setPlayerError(true)}
-        opts={{
-          width: "100%",
-          height: "100%",
-          playerVars
-        }}
-      />
+  return (
+    <div className="space-y-3">
+      <div
+        className={[
+          "relative aspect-video overflow-hidden rounded-xl border border-black/10 bg-black transition-shadow dark:border-white/10",
+          isFlashing ? "shadow-[0_0_0_3px_rgba(245,181,68,0.45)]" : ""
+        ].join(" ")}
+      >
+        <YouTube
+          videoId={videoId}
+          className="absolute inset-0 h-full w-full"
+          iframeClassName="h-full w-full"
+          title={title}
+          onReady={(event: YouTubeEvent) => {
+            setPlayerError(false);
+            setPlayer(event.target);
+            const pendingSeek = usePlayerStore.getState().seekRequest;
+
+            if (pendingSeek) {
+              event.target.seekTo?.(pendingSeek.seconds, true);
+              event.target.playVideo?.();
+            }
+          }}
+          onError={() => setPlayerError(true)}
+          opts={{
+            width: "100%",
+            height: "100%",
+            playerVars
+          }}
+        />
+      </div>
+
+      {showTranscriptWarning ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+          <p className="font-medium">Transcript is unavailable for this video.</p>
+          <p className="mt-1 opacity-90">{errorMessage}</p>
+          <p className="mt-1 font-mono text-xs opacity-70">Error code: {errorType}</p>
+        </div>
+      ) : null}
     </div>
   );
 }

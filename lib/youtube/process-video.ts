@@ -46,6 +46,11 @@ const fallbackEligibleErrors = new Set<VideoErrorType>([
   "VIDEO_UNAVAILABLE",
   "AGE_RESTRICTED"
 ]);
+const hardBlockingErrors = new Set<VideoErrorType>([
+  "LIVE_STREAM_ACTIVE",
+  "VIDEO_TOO_LONG",
+  "UNSUPPORTED_URL"
+]);
 
 type IngestionEngine = "node" | "worker" | "hybrid";
 
@@ -342,6 +347,7 @@ export async function processNotebookVideo(
     };
   } catch (error) {
     const safeError = normalizeYoutubeChallengeError(normalizeVideoError(error));
+    const hardBlocked = isHardBlockingError(safeError.type);
 
     logIngestionEvent("youtube_process_failed", {
       notebookId,
@@ -358,27 +364,32 @@ export async function processNotebookVideo(
     await prisma.notebook.update({
       where: { id: notebookId },
       data: {
-        status: "FAILED",
+        status: hardBlocked ? "FAILED" : "READY",
+        videoId: parsedVideoId ?? undefined,
         errorType: safeError.type,
-        errorMessage: safeError.userMessage
+        errorMessage: hardBlocked
+          ? safeError.userMessage
+          : buildPlaybackOnlyMessage(safeError)
       }
     });
 
     if (job) {
       await updateJob(job.id, {
-        status: "FAILED",
+        status: hardBlocked ? "FAILED" : "SUCCEEDED",
         progress: 100,
         progressPercent: 100,
-        currentStep: safeError.userTitle,
-        errorType: safeError.type,
-        errorMessage: safeError.userMessage,
-        errorCode: safeError.type,
-        safeErrorMessage: safeError.userMessage,
+        currentStep: hardBlocked ? safeError.userTitle : "Ready (playback only)",
+        errorType: hardBlocked ? safeError.type : null,
+        errorMessage: hardBlocked ? safeError.userMessage : null,
+        errorCode: hardBlocked ? safeError.type : null,
+        safeErrorMessage: hardBlocked ? safeError.userMessage : null,
         finishedAt: new Date(),
         metadata: {
           ...(toRecord(job.metadata) ?? {}),
           errorType: safeError.type,
-          retryable: safeError.retryable,
+          transcriptAvailable: false,
+          playbackOnly: !hardBlocked,
+          retryable: hardBlocked ? safeError.retryable : false,
           retryLimit: getRetryLimit()
         }
       });
@@ -386,9 +397,11 @@ export async function processNotebookVideo(
 
     return {
       notebookId,
-      status: "FAILED",
+      status: hardBlocked ? "FAILED" : "READY",
       errorType: safeError.type,
-      errorMessage: safeError.userMessage
+      errorMessage: hardBlocked
+        ? safeError.userMessage
+        : buildPlaybackOnlyMessage(safeError)
     };
   }
 }
@@ -812,6 +825,10 @@ function canFallbackToWorker(errorType: VideoErrorType) {
   return isWorkerEnabled() && fallbackEligibleErrors.has(errorType);
 }
 
+function isHardBlockingError(errorType: VideoErrorType) {
+  return hardBlockingErrors.has(errorType);
+}
+
 async function updateNotebookAndJob({
   notebookId,
   jobId,
@@ -982,6 +999,14 @@ function normalizeYoutubeChallengeError(error: VideoProcessingError) {
   }
 
   return error;
+}
+
+function buildPlaybackOnlyMessage(error: VideoProcessingError) {
+  if (error.type === "LIVE_STREAM_ACTIVE" || error.type === "VIDEO_TOO_LONG") {
+    return error.userMessage;
+  }
+
+  return "Video playback is available, but transcript extraction is unavailable for this source right now.";
 }
 
 function logIndexQueueEvent(

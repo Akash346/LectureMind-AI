@@ -179,6 +179,14 @@ export function WorkspaceShell({
   const videoUrl = status.videoId
     ? `https://www.youtube.com/watch?v=${status.videoId}`
     : activeChat.videoUrl;
+  const canGenerateArtifacts =
+    isDemo || (status.status === "READY" && status.segmentCount > 0);
+  const artifactBlockedReason =
+    status.status === "FAILED"
+      ? "Transcript extraction failed for this video."
+      : status.status === "READY" && status.segmentCount === 0
+        ? "Transcript evidence is unavailable for this video."
+        : "Transcript evidence is still being prepared.";
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-lm-paper text-lm-ink dark:bg-lm-ink dark:text-lm-paper">
@@ -229,9 +237,8 @@ export function WorkspaceShell({
               </PanelGroup>
             </div>
             <ArtifactDock
-              canGenerate={
-                isDemo || (status.status === "READY" && status.segmentCount > 0)
-              }
+              canGenerate={canGenerateArtifacts}
+              cannotGenerateReason={artifactBlockedReason}
               chatId={activeChat.id}
               isDemo={isDemo}
               language={status.language}

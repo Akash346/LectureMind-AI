@@ -42,6 +42,7 @@ const ARTIFACT_META: Record<
 
 type ArtifactDockProps = {
   canGenerate?: boolean;
+  cannotGenerateReason?: string;
   chatId: string;
   isDemo?: boolean;
   language?: string;
@@ -49,6 +50,7 @@ type ArtifactDockProps = {
 
 export function ArtifactDock({
   canGenerate = true,
+  cannotGenerateReason = "Transcript evidence is still being prepared.",
   chatId,
   isDemo = false,
   language
@@ -181,7 +183,7 @@ export function ArtifactDock({
     if (!canGenerate) {
       setArtifactStatus(type, {
         status: "error",
-        error: "Transcript evidence is still being prepared."
+        error: cannotGenerateReason
       });
       return;
     }
