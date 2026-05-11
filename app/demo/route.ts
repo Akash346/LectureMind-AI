@@ -11,10 +11,10 @@ import { getOrCreateDemoUser } from "@/lib/demo-user";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const demoUser = await getOrCreateDemoUser();
-  const demoNotebook = await ensureDemoNotebook({ userId: demoUser.id });
+  await ensureDemoNotebook({ userId: demoUser.id });
 
   const response = NextResponse.redirect(
-    new URL(`/chats/${demoNotebook.notebookId}?demo=1`, url.origin)
+    new URL("/dashboard?demo=1", url.origin)
   );
   const value = await createDemoCookieValue();
 
