@@ -67,7 +67,7 @@ export default function StartPage() {
                 <Link href="/auth/signin">Student</Link>
               </PrimaryButton>
               <SecondaryButton asChild className="w-full">
-                <Link href="/start/faculty">Faculty</Link>
+                <Link href="/faculty/dashboard">Faculty</Link>
               </SecondaryButton>
               <SecondaryButton asChild className="w-full">
                 <Link href="/start/administration">Administration</Link>

@@ -234,3 +234,96 @@ model UserPreference {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model FacultySession {
+  id             String   @id @default(cuid())
+  workspaceId    String   @unique
+  lectureUrl     String?
+  status         String   @default("created")
+  azureNamespace String   @unique
+  createdAt      DateTime @default(now())
+  lastActiveAt   DateTime @default(now())
+  expiresAt      DateTime
+  deletedAt      DateTime?
+
+  workspace      FacultyWorkspace?
+  uploads        FacultyUpload[]
+  artifacts      FacultyArtifact[]
+  chatMessages   FacultyChatMessage[]
+
+  @@index([expiresAt])
+  @@index([lastActiveAt])
+  @@index([deletedAt])
+}
+
+model FacultyWorkspace {
+  id             String   @id @default(cuid())
+  sessionId      String   @unique
+  title          String?
+  lectureUrl     String
+  transcriptText String?
+  segmentCount   Int      @default(0)
+  indexedCount   Int      @default(0)
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  session        FacultySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([status])
+}
+
+model FacultyUpload {
+  id              String   @id @default(cuid())
+  sessionId       String
+  originalName    String
+  mimeType        String
+  sizeBytes       Int
+  storageKey      String
+  ocrStatus       String   @default("pending")
+  ocrText         String?
+  ocrJson         Json?
+  confidenceScore Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  session         FacultySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([ocrStatus])
+}
+
+model FacultyArtifact {
+  id             String   @id @default(cuid())
+  sessionId      String
+  type           String
+  status         String   @default("pending")
+  title          String?
+  json           Json?
+  storageKey     String?
+  errorCode      String?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  session        FacultySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([type])
+  @@unique([sessionId, type])
+}
+
+model FacultyChatMessage {
+  id             String   @id @default(cuid())
+  sessionId      String
+  role           String
+  content        String
+  citations      Json?
+  createdAt      DateTime @default(now())
+
+  session        FacultySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
+}

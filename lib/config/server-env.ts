@@ -17,9 +17,18 @@ type ServerEnvSnapshot = {
   AZURE_SEARCH_SOURCE: AzureSearchConfigSource;
   AZURE_STORAGE_CONNECTION_STRING: string | null;
   AZURE_STORAGE_CONTAINER: string | null;
+  AZURE_STORAGE_FACULTY_CONTAINER: string;
   AZURE_SPEECH_KEY: string | null;
   AZURE_SPEECH_REGION: string | null;
   AZURE_SPEECH_LANGUAGE: string;
+  FACULTY_SESSION_TTL_MINUTES: number;
+  FACULTY_HEARTBEAT_INTERVAL_SECONDS: number;
+  FACULTY_SWEEP_SECRET: string | null;
+  FACULTY_PRIMARY_MODEL_DEPLOYMENT: string | null;
+  FACULTY_AZURE_SEARCH_INDEX_NAME: string;
+  MISTRAL_OCR_ENDPOINT: string | null;
+  MISTRAL_OCR_API_KEY: string | null;
+  MISTRAL_OCR_MODEL: string;
   aliasWarnings: string[];
 };
 
@@ -100,7 +109,24 @@ export function getAzureStorageConfig() {
   return {
     connectionString: env.AZURE_STORAGE_CONNECTION_STRING,
     container: env.AZURE_STORAGE_CONTAINER,
+    facultyContainer: env.AZURE_STORAGE_FACULTY_CONTAINER,
     configured: getCapabilityStatus().storageConfigured
+  };
+}
+
+export function getFacultyConfig() {
+  const env = getServerEnv();
+
+  return {
+    sessionTtlMinutes: env.FACULTY_SESSION_TTL_MINUTES,
+    heartbeatIntervalSeconds: env.FACULTY_HEARTBEAT_INTERVAL_SECONDS,
+    sweepSecret: env.FACULTY_SWEEP_SECRET,
+    primaryModelDeployment: env.FACULTY_PRIMARY_MODEL_DEPLOYMENT,
+    searchIndexName: env.FACULTY_AZURE_SEARCH_INDEX_NAME,
+    storageContainer: env.AZURE_STORAGE_FACULTY_CONTAINER,
+    mistralOcrEndpoint: env.MISTRAL_OCR_ENDPOINT,
+    mistralOcrApiKey: env.MISTRAL_OCR_API_KEY,
+    mistralOcrModel: env.MISTRAL_OCR_MODEL
   };
 }
 
@@ -151,6 +177,16 @@ export function getServerEnvForDiagnostics() {
     azureSearchIndexName: env.AZURE_SEARCH_INDEX_NAME,
     azureSearchIndexEnvSource: env.AZURE_SEARCH_SOURCE.indexName,
     azureStorageConfigured: getCapabilityStatus().storageConfigured,
+    azureFacultyStorageContainer: env.AZURE_STORAGE_FACULTY_CONTAINER,
+    facultySearchIndexName: env.FACULTY_AZURE_SEARCH_INDEX_NAME,
+    facultyPrimaryModelConfigured: Boolean(
+      env.FACULTY_PRIMARY_MODEL_DEPLOYMENT ||
+        env.AZURE_OPENAI_DEPLOYMENT_STRONG ||
+        env.AZURE_OPENAI_DEPLOYMENT_FAST
+    ),
+    mistralOcrConfigured: Boolean(
+      env.MISTRAL_OCR_ENDPOINT && env.MISTRAL_OCR_API_KEY
+    ),
     azureSpeechConfigured: getCapabilityStatus().speechConfigured,
     aliasWarnings: env.aliasWarnings
   };
@@ -213,10 +249,29 @@ function getServerEnv(): ServerEnvSnapshot {
     },
     AZURE_STORAGE_CONNECTION_STRING: readEnv("AZURE_STORAGE_CONNECTION_STRING"),
     AZURE_STORAGE_CONTAINER: readEnv("AZURE_STORAGE_CONTAINER"),
+    AZURE_STORAGE_FACULTY_CONTAINER:
+      readEnv("AZURE_STORAGE_FACULTY_CONTAINER") ?? "faculty-sessions",
     AZURE_SPEECH_KEY: readEnv("AZURE_SPEECH_KEY"),
     AZURE_SPEECH_REGION: readEnv("AZURE_SPEECH_REGION"),
     AZURE_SPEECH_LANGUAGE:
       readEnv("AZURE_SPEECH_LANGUAGE") ?? DEFAULT_AZURE_SPEECH_LANGUAGE,
+    FACULTY_SESSION_TTL_MINUTES: readPositiveInteger(
+      "FACULTY_SESSION_TTL_MINUTES",
+      120
+    ),
+    FACULTY_HEARTBEAT_INTERVAL_SECONDS: readPositiveInteger(
+      "FACULTY_HEARTBEAT_INTERVAL_SECONDS",
+      30
+    ),
+    FACULTY_SWEEP_SECRET: readEnv("FACULTY_SWEEP_SECRET"),
+    FACULTY_PRIMARY_MODEL_DEPLOYMENT: readEnv("FACULTY_PRIMARY_MODEL_DEPLOYMENT"),
+    FACULTY_AZURE_SEARCH_INDEX_NAME:
+      readEnv("FACULTY_AZURE_SEARCH_INDEX_NAME") ??
+      "lecturemind-faculty-evidence-dev",
+    MISTRAL_OCR_ENDPOINT: normalizeEndpoint(readEnv("MISTRAL_OCR_ENDPOINT")),
+    MISTRAL_OCR_API_KEY: readEnv("MISTRAL_OCR_API_KEY"),
+    MISTRAL_OCR_MODEL:
+      readEnv("MISTRAL_OCR_MODEL") ?? "mistral-document-ai-2512",
     aliasWarnings
   };
 
