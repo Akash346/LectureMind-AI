@@ -1,37 +1,23 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { headers } from "next/headers";
 
 import {
   DashboardClient,
   type ChatCard
 } from "@/components/dashboard/DashboardClient";
-import { authOptions } from "@/lib/auth";
 import { logAuthDebug } from "@/lib/auth-debug";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { getYouTubeThumbnail } from "@/lib/utils/youtube";
 
-export default async function DashboardPage({
-  searchParams
-}: {
-  searchParams: Promise<{ demo?: string }>;
-}) {
-  await searchParams;
-  const requestHeaders = await headers();
-  const isDemoRequest = requestHeaders.get("x-lecturemind-demo") === "true";
+export default async function DashboardPage() {
+  const user = await requireUser();
 
-  if (isDemoRequest) {
-    return <DashboardClient initialChats={[]} initialIsDemo />;
-  }
-
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
+  if (!user?.id) {
     redirect("/auth/signin");
   }
 
   const notebooks = await prisma.notebook.findMany({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -63,7 +49,7 @@ export default async function DashboardPage({
   });
 
   logAuthDebug("dashboard_chats_loaded", {
-    sessionUserId: session.user.id,
+    sessionUserId: user.id,
     chatOwnerIds: Array.from(new Set(notebooks.map((item) => item.userId))),
     chatCount: notebooks.length
   });
@@ -72,8 +58,8 @@ export default async function DashboardPage({
     <DashboardClient
       initialChats={notebooks.map((item) => mapNotebookToChat(item))}
       user={{
-        name: session.user.name,
-        image: session.user.image
+        name: user.name,
+        image: user.image
       }}
     />
   );

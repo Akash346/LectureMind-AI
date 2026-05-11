@@ -21,6 +21,7 @@ export default function SignInPage() {
 
   React.useEffect(() => {
     window.sessionStorage.removeItem("lecturemind_demo");
+    window.sessionStorage.removeItem("lecturemind-demo");
   }, []);
 
   async function handleGoogleSignIn() {
@@ -116,6 +117,7 @@ function clearClientAuthState() {
   }
 
   window.sessionStorage.removeItem("lecturemind_demo");
+  window.sessionStorage.removeItem("lecturemind-demo");
   removeAuthStorageKeys(window.localStorage);
   removeAuthStorageKeys(window.sessionStorage);
 }

@@ -77,7 +77,7 @@ export default function StartPage() {
               href="/demo"
               className="mt-8 inline-flex text-sm font-medium text-black/70 transition hover:text-lm-indigo dark:text-white/70 dark:hover:text-lm-amber"
             >
-              I am a judge, take me to demo
+              Demo user
             </Link>
           </GlassPanel>
         </motion.div>

@@ -1,33 +1,21 @@
 import { notFound, redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { headers } from "next/headers";
 
 import type { ChatMessage } from "@/components/workspace/ChatSurface";
 import { WorkspaceRouteClient } from "@/components/workspace/WorkspaceRouteClient";
-import { authOptions } from "@/lib/auth";
 import { formatTimestamp } from "@/lib/citations";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { getYouTubeThumbnail } from "@/lib/utils/youtube";
 
 export default async function ChatPage({
-  params,
-  searchParams
+  params
 }: {
   params: Promise<{ chatId: string }>;
-  searchParams: Promise<{ demo?: string }>;
 }) {
   const { chatId } = await params;
-  await searchParams;
-  const requestHeaders = await headers();
-  const isDemoRequest = requestHeaders.get("x-lecturemind-demo") === "true";
+  const user = await requireUser();
 
-  if (isDemoRequest) {
-    return <WorkspaceRouteClient chatId={chatId} initialIsDemo />;
-  }
-
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
+  if (!user?.id) {
     redirect("/auth/signin");
   }
 
@@ -35,7 +23,7 @@ export default async function ChatPage({
     prisma.notebook.findFirst({
       where: {
         id: chatId,
-        userId: session.user.id
+        userId: user.id
       },
       select: {
         id: true,
@@ -70,7 +58,7 @@ export default async function ChatPage({
       }
     }),
     prisma.notebook.findMany({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: 40,
       select: {
@@ -97,6 +85,10 @@ export default async function ChatPage({
           mapChatMessageToSurfaceMessage(message)
         ) ?? []
       }
+      user={{
+        name: user.name,
+        image: user.image
+      }}
     />
   );
 }

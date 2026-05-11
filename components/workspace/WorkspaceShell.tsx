@@ -36,13 +36,18 @@ type WorkspaceShellProps = {
   chats: WorkspaceChat[];
   initialMessages?: ChatMessage[];
   isDemo?: boolean;
+  user?: {
+    image?: string | null;
+    name?: string | null;
+  } | null;
 };
 
 export function WorkspaceShell({
   activeChat,
   chats,
   initialMessages = [],
-  isDemo = false
+  isDemo = false,
+  user
 }: WorkspaceShellProps) {
   const [status, setStatus] = React.useState(() =>
     normalizeWorkspaceStatus(activeChat, isDemo)
@@ -174,7 +179,7 @@ export function WorkspaceShell({
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-lm-paper text-lm-ink dark:bg-lm-ink dark:text-lm-paper">
-      <WorkspaceHeader title={activeChat.title} isDemo={isDemo} />
+      <WorkspaceHeader title={activeChat.title} isDemo={isDemo} user={user} />
       <PanelGroup
         id="workspace-layout-v2"
         data-auto-save-id="workspace-layout-v2"

@@ -7,12 +7,11 @@ import { Plus, Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useSession } from "next-auth/react";
 
+import { DeleteNotebookDialog } from "@/components/delete-notebook-dialog";
 import { NewChatSheet } from "@/components/dashboard/NewChatSheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { LMLogo, LMWordmark } from "@/components/ui/brand";
-import { useDemoUiFlag } from "@/components/ui/brand/useDemoUiFlag";
-import { useDemoStore } from "@/lib/stores/useDemoStore";
 import { formatRelativeTime } from "@/lib/utils/time";
 
 export type ChatCard = {
@@ -33,7 +32,6 @@ export type ChatCard = {
 
 type DashboardClientProps = {
   initialChats: ChatCard[];
-  initialIsDemo?: boolean;
   user?: {
     name?: string | null;
     image?: string | null;
@@ -53,23 +51,12 @@ const artifactLabels = [
 
 export function DashboardClient({
   initialChats,
-  initialIsDemo = false,
   user
 }: DashboardClientProps) {
   const { status } = useSession();
-  const isDemoUiFlag = useDemoUiFlag();
-  const demoChats = useDemoStore((state) => state.chats);
-  const startDemo = useDemoStore((state) => state.startDemo);
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const isAuthenticated = status === "authenticated" || Boolean(user);
-  const isDemo = !isAuthenticated && (initialIsDemo || isDemoUiFlag);
-
-  React.useEffect(() => {
-    if (isDemo && demoChats.length === 0) {
-      startDemo();
-    }
-  }, [demoChats.length, isDemo, startDemo]);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -79,11 +66,10 @@ export function DashboardClient({
     }
   }, []);
 
-  const chats = isDemo ? demoChats : initialChats;
+  const chats = initialChats;
   const filteredChats = chats.filter((chat) =>
     chat.title.toLowerCase().includes(query.toLowerCase())
   );
-  const showDemoBadge = status === "unauthenticated" && isDemoUiFlag;
 
   return (
     <main className="min-h-screen bg-lm-paper text-lm-ink dark:bg-lm-ink dark:text-lm-paper">
@@ -94,11 +80,6 @@ export function DashboardClient({
             <LMWordmark className="text-xl" />
           </Link>
           <div className="flex items-center gap-3">
-            {showDemoBadge ? (
-              <span className="rounded-full border border-[rgba(245,181,68,0.35)] bg-[rgba(245,181,68,0.12)] px-3 py-1 text-xs font-medium text-lm-indigo dark:text-lm-amber">
-                Demo Mode
-              </span>
-            ) : null}
             <ThemeToggle />
             {isAuthenticated ? <Avatar user={user} /> : null}
           </div>
@@ -141,32 +122,28 @@ export function DashboardClient({
         ) : (
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filteredChats.map((chat) => (
-              <ChatCardView key={chat.id} chat={chat} isDemo={isDemo} />
+              <ChatCardView key={chat.id} chat={chat} />
             ))}
           </div>
         )}
       </section>
 
-      <NewChatSheet
-        isDemo={isDemo}
-        onOpenChange={setSheetOpen}
-        open={sheetOpen}
-      />
+      <NewChatSheet onOpenChange={setSheetOpen} open={sheetOpen} />
     </main>
   );
 }
 
-function ChatCardView({ chat, isDemo }: { chat: ChatCard; isDemo: boolean }) {
+function ChatCardView({ chat }: { chat: ChatCard }) {
   return (
     <motion.article
       whileHover={{ y: -3 }}
       transition={spring}
-      className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
+      className="relative overflow-hidden rounded-lg border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.06]"
     >
-      <Link
-        className="block h-full"
-        href={`/chats/${chat.id}${isDemo ? "?demo=1" : ""}`}
-      >
+      <div className="absolute right-3 top-3 z-10 rounded-md bg-white/90 shadow-sm backdrop-blur dark:bg-lm-ink/90">
+        <DeleteNotebookDialog notebookId={chat.id} title={chat.title} />
+      </div>
+      <Link className="block h-full" href={`/chats/${chat.id}`}>
         <div className="aspect-video bg-black/[0.05] dark:bg-white/[0.06]">
           {chat.thumbnailUrl ? (
             <Image

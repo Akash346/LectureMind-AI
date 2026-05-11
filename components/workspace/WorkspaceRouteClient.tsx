@@ -1,9 +1,5 @@
 "use client";
 
-import * as React from "react";
-
-import { useDemoUiFlag } from "@/components/ui/brand/useDemoUiFlag";
-import { useDemoStore } from "@/lib/stores/useDemoStore";
 import type { ChatMessage } from "./ChatSurface";
 import { WorkspaceShell } from "./WorkspaceShell";
 
@@ -28,7 +24,10 @@ type WorkspaceRouteClientProps = {
   initialChat?: WorkspaceChat | null;
   initialChats?: WorkspaceChat[];
   initialMessages?: ChatMessage[];
-  initialIsDemo?: boolean;
+  user?: {
+    image?: string | null;
+    name?: string | null;
+  } | null;
 };
 
 export function WorkspaceRouteClient({
@@ -36,20 +35,9 @@ export function WorkspaceRouteClient({
   initialChat,
   initialChats = [],
   initialMessages = [],
-  initialIsDemo = false
+  user
 }: WorkspaceRouteClientProps) {
-  const isDemoUiFlag = useDemoUiFlag();
-  const demoChats = useDemoStore((state) => state.chats);
-  const startDemo = useDemoStore((state) => state.startDemo);
-  const isDemo = initialIsDemo || isDemoUiFlag;
-
-  React.useEffect(() => {
-    if (isDemo && demoChats.length === 0) {
-      startDemo();
-    }
-  }, [demoChats.length, isDemo, startDemo]);
-
-  const chats = isDemo && demoChats.length > 0 ? demoChats : initialChats;
+  const chats = initialChats;
   const activeChat =
     chats.find((chat) => chat.id === chatId) ??
     initialChat ??
@@ -66,7 +54,7 @@ export function WorkspaceRouteClient({
       activeChat={activeChat}
       chats={chats}
       initialMessages={initialMessages}
-      isDemo={isDemo}
+      user={user}
     />
   );
 }

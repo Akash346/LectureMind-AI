@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { Link2 } from "lucide-react";
 
@@ -21,23 +20,18 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { useDemoStore } from "@/lib/stores/useDemoStore";
 import { isValidYouTubeUrl } from "@/lib/utils/youtube";
 import { languageOptions } from "@/lib/validators";
 
 type NewChatSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  isDemo?: boolean;
 };
 
 export function NewChatSheet({
   open,
-  onOpenChange,
-  isDemo = false
+  onOpenChange
 }: NewChatSheetProps) {
-  const router = useRouter();
-  const addDemoChat = useDemoStore((state) => state.addDemoChat);
   const [state, formAction] = useFormState(createNotebook, {});
   const [url, setUrl] = React.useState("");
   const [language, setLanguage] = React.useState("en");
@@ -60,13 +54,6 @@ export function NewChatSheet({
     }
 
     setClientError(null);
-
-    if (isDemo) {
-      event.preventDefault();
-      const chat = addDemoChat("New demo chat", trimmedUrl);
-      onOpenChange(false);
-      router.push(`/chats/${chat.id}?demo=1`);
-    }
   }
 
   return (
@@ -78,7 +65,7 @@ export function NewChatSheet({
           </DialogTitle>
         </DialogHeader>
         <form
-          action={isDemo ? undefined : formAction}
+          action={formAction}
           className="space-y-4"
           onSubmit={handleSubmit}
         >
@@ -120,7 +107,7 @@ export function NewChatSheet({
               {clientError}
             </p>
           ) : null}
-          {!isDemo && state.error ? (
+          {state.error ? (
             <p className="text-sm text-red-600 dark:text-red-300">
               Could not create this chat. Try again.
             </p>

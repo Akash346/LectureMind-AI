@@ -1,5 +1,25 @@
 export const demoCookieName = "lm_demo";
 const demoPayload = "demo";
+const nextAuthCookieNames = [
+  "next-auth.session-token",
+  "__Secure-next-auth.session-token",
+  "next-auth.callback-url",
+  "__Secure-next-auth.callback-url",
+  "next-auth.csrf-token",
+  "__Host-next-auth.csrf-token",
+  "next-auth.pkce.code_verifier",
+  "__Secure-next-auth.pkce.code_verifier",
+  "next-auth.state",
+  "__Secure-next-auth.state",
+  "next-auth.nonce",
+  "__Secure-next-auth.nonce"
+];
+
+type CookieResponse = {
+  cookies: {
+    delete: (name: string) => void;
+  };
+};
 
 function getSecret() {
   return (
@@ -35,4 +55,19 @@ export async function verifyDemoCookieValue(value?: string) {
   if (payload !== demoPayload || !signature) return false;
   const expected = await hmacSha256(demoPayload);
   return signature === expected;
+}
+
+export function deleteDemoCookie(response: CookieResponse) {
+  response.cookies.delete(demoCookieName);
+}
+
+export function deleteNextAuthCookies(response: CookieResponse) {
+  for (const cookieName of nextAuthCookieNames) {
+    response.cookies.delete(cookieName);
+  }
+}
+
+export function deleteDemoAndAuthCookies(response: CookieResponse) {
+  deleteDemoCookie(response);
+  deleteNextAuthCookies(response);
 }
