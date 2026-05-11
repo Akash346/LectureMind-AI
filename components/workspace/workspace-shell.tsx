@@ -36,6 +36,7 @@ import type { User } from "next-auth";
 
 import { SignOutButton } from "@/components/auth-buttons";
 import { Brand } from "@/components/brand";
+import { DemoModeBadge } from "@/components/demo-mode-badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StudioArtifactsPanel } from "@/components/workspace/artifacts/studio-panel";
 import type { StudioArtifact } from "@/components/workspace/artifacts/types";
@@ -56,10 +57,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  type VideoErrorType,
-  videoErrorCopy
-} from "@/lib/video-errors";
+import { type VideoErrorType, videoErrorCopy } from "@/lib/video-errors";
 import {
   languageNames,
   normalizeArtifactLanguage,
@@ -245,6 +243,14 @@ const statusVariant: Record<NotebookStatus, BadgeProps["variant"]> = {
   PROCESSING: "warning",
   READY: "success",
   FAILED: "destructive"
+};
+
+const statusLabel: Record<NotebookStatus, string> = {
+  DRAFT: "Draft",
+  PENDING: "Pending",
+  PROCESSING: "Processing",
+  READY: "Ready",
+  FAILED: "Failed"
 };
 
 export function WorkspaceShell({
@@ -448,10 +454,7 @@ export function WorkspaceShell({
 
   return (
     <main className="flex min-h-screen flex-col bg-muted/20">
-      <WorkspaceTopBar
-        studyLanguage={selectedLanguage}
-        user={user}
-      />
+      <WorkspaceTopBar studyLanguage={selectedLanguage} user={user} />
       <div className="hidden flex-1 gap-3 p-3 md:grid md:grid-cols-[auto_1fr_auto]">
         <motion.aside
           animate={{ width: sourceOpen ? 316 : 48 }}
@@ -575,9 +578,10 @@ function WorkspaceTopBar({
           <Button asChild className="hidden sm:inline-flex" size="sm">
             <Link href="/notebooks/new">
               <Plus className="h-4 w-4" />
-              New notebook
+              New Chat
             </Link>
           </Button>
+          <DemoModeBadge />
           <div
             aria-label={`Study language: ${studyLanguageLabel}. ${studyLanguageHelp}`}
             className="hidden items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs sm:flex"
@@ -613,7 +617,7 @@ function WorkspaceTopBar({
                 <Link href="/dashboard">Dashboard</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/notebooks/new">New notebook</Link>
+                <Link href="/notebooks/new">New Chat</Link>
               </DropdownMenuItem>
               <div className="px-2 py-1.5 text-xs text-muted-foreground sm:hidden">
                 Study language:{" "}
@@ -648,9 +652,7 @@ function SourcePane({
     <section className="h-full overflow-y-auto rounded-lg border bg-background p-4 md:border-0">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-muted-foreground">
-            Source
-          </p>
+          <p className="text-xs font-semibold text-muted-foreground">Source</p>
           <h2 className="mt-1 text-lg font-semibold">Lecture source</h2>
         </div>
         {onToggle ? (
@@ -681,7 +683,7 @@ function SourcePane({
           )}
           <div className="space-y-3 p-4">
             <div>
-              <p className="text-xs font-medium uppercase text-muted-foreground">
+              <p className="text-xs font-medium text-muted-foreground">
                 YouTube lecture
               </p>
               <h3 className="mt-1 line-clamp-3 text-sm font-semibold">
@@ -704,7 +706,7 @@ function SourcePane({
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Status</span>
             <Badge variant={statusVariant[notebook.status]}>
-              {notebook.status}
+              {statusLabel[notebook.status]}
             </Badge>
           </div>
           <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -717,7 +719,10 @@ function SourcePane({
                 <Captions className="h-4 w-4" />
                 {notebook.segmentCount.toLocaleString()} evidence segments
               </div>
-              <MetricRow label="Source type" value={sourceSummary.sourceLabel} />
+              <MetricRow
+                label="Source type"
+                value={sourceSummary.sourceLabel}
+              />
               <MetricRow label="Engine" value={sourceSummary.engineLabel} />
               {sourceSummary.language ? (
                 <MetricRow label="Language" value={sourceSummary.language} />
@@ -786,7 +791,7 @@ function CenterPane({
       <div className="border-b p-4">
         <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">
+            <p className="text-xs font-semibold text-muted-foreground">
               Workspace
             </p>
             <h1 className="truncate text-xl font-semibold">{notebook.title}</h1>
@@ -799,7 +804,7 @@ function CenterPane({
             </p>
           </div>
           <Badge variant={statusVariant[notebook.status]}>
-            Evidence {notebook.status.toLowerCase()}
+            Evidence {statusLabel[notebook.status].toLowerCase()}
           </Badge>
         </div>
       </div>
@@ -981,7 +986,9 @@ function SourceReadyCard({
         <MetricRow
           label="Duration"
           value={
-            notebook.durationSec ? formatDuration(notebook.durationSec) : "Unknown"
+            notebook.durationSec
+              ? formatDuration(notebook.durationSec)
+              : "Unknown"
           }
         />
         <MetricRow label="Source type" value={sourceSummary.sourceLabel} />
@@ -1041,7 +1048,8 @@ function ProgressPanel({
     activeStep.includes(step.label)
   );
   const progressIndex = progressSteps.reduce(
-    (latest, step, index) => (clampedProgress >= step.progress ? index : latest),
+    (latest, step, index) =>
+      clampedProgress >= step.progress ? index : latest,
     0
   );
   const activeIndex = labelIndex >= 0 ? labelIndex : progressIndex;
@@ -1077,7 +1085,8 @@ function ProgressPanel({
         <div className="mt-5 space-y-3">
           {progressSteps.map((step, index) => {
             const complete =
-              clampedProgress === 100 || (activeIndex >= 0 && index < activeIndex);
+              clampedProgress === 100 ||
+              (activeIndex >= 0 && index < activeIndex);
             const active = index === activeIndex && clampedProgress < 100;
 
             return (
@@ -1215,9 +1224,12 @@ function ChatPane({
   onSeek: (seconds: number) => void;
 }) {
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<ChatMessageVm[]>(initialChatMessages);
+  const [messages, setMessages] =
+    useState<ChatMessageVm[]>(initialChatMessages);
   const [error, setError] = useState<ChatErrorVm | null>(null);
-  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
+  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(
+    null
+  );
   const [isSending, setIsSending] = useState(false);
   const ready = notebookStatus === "READY" && evidenceCount > 0;
   const examples = [
@@ -1310,7 +1322,9 @@ function ChatPane({
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent">
                 <BookOpen className="h-6 w-6" />
               </div>
-              <h2 className="mt-4 text-xl font-semibold">Ask from the lecture</h2>
+              <h2 className="mt-4 text-xl font-semibold">
+                Ask from the lecture
+              </h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 {ready
                   ? "Answers will use retrieved transcript evidence and verified citations."
@@ -1514,9 +1528,7 @@ function StudioPane({
     <section className="h-full overflow-y-auto rounded-lg border bg-background p-4 md:border-0">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-muted-foreground">
-            Studio
-          </p>
+          <p className="text-xs font-semibold text-muted-foreground">Studio</p>
           <h2 className="mt-1 text-lg font-semibold">Study artifacts</h2>
         </div>
         {onToggle ? (
@@ -1758,7 +1770,9 @@ function getIndexLabel(indexStatus: IndexStatusVm | null) {
   return "Not started";
 }
 
-function normalizeChatMode(value: string): "study" | "exam" | "simple" | "deep" {
+function normalizeChatMode(
+  value: string
+): "study" | "exam" | "simple" | "deep" {
   if (value === "learning-guide") {
     return "study";
   }
@@ -1792,7 +1806,9 @@ function isChatErrorPayload(
   return "error" in payload;
 }
 
-function toChatError(payload: ChatSuccessPayload | ChatErrorPayload): ChatErrorVm {
+function toChatError(
+  payload: ChatSuccessPayload | ChatErrorPayload
+): ChatErrorVm {
   if (isChatErrorPayload(payload) && payload.error) {
     return {
       code: payload.error.code,

@@ -65,7 +65,7 @@ export async function createNotebook(
   });
 
   revalidatePath("/dashboard");
-  redirect(`/notebooks/${notebook.id}`);
+  redirect(`/chats/${notebook.id}`);
 }
 
 export async function deleteNotebook(formData: FormData) {

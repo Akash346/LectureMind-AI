@@ -9,7 +9,7 @@ export default function NotFound() {
         <p className="text-sm font-medium text-primary">404</p>
         <h1 className="text-3xl font-semibold">This workspace is not here.</h1>
         <p className="text-sm text-muted-foreground">
-          The notebook may have been deleted, or you may not have access to it.
+          The Chat may have been deleted, or you may not have access to it.
         </p>
         <Button asChild>
           <Link href="/dashboard">Back to dashboard</Link>

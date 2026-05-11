@@ -18,6 +18,13 @@ const config: Config = {
     },
     extend: {
       colors: {
+        lm: {
+          indigo: "var(--lm-indigo)",
+          "indigo-deep": "var(--lm-indigo-deep)",
+          amber: "var(--lm-amber)",
+          ink: "var(--lm-ink)",
+          paper: "var(--lm-paper)"
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -59,6 +66,12 @@ const config: Config = {
       },
       boxShadow: {
         soft: "0 18px 60px rgb(15 23 42 / 0.10)"
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "sans-serif"],
+        inter: ["var(--font-inter)", "sans-serif"],
+        "space-grotesk": ["var(--font-space-grotesk)", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "monospace"]
       },
       keyframes: {
         "accordion-down": {

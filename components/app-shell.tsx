@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 
 import { SignOutButton } from "@/components/auth-buttons";
 import { Brand } from "@/components/brand";
+import { DemoModeBadge } from "@/components/demo-mode-badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +24,10 @@ export function AppTopBar({ user }: { user: User }) {
           <Button asChild className="hidden sm:inline-flex" size="sm">
             <Link href="/notebooks/new">
               <Plus className="h-4 w-4" />
-              New notebook
+              New Chat
             </Link>
           </Button>
+          <DemoModeBadge />
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -53,7 +55,7 @@ export function AppTopBar({ user }: { user: User }) {
                 <Link href="/dashboard">Dashboard</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/notebooks/new">New notebook</Link>
+                <Link href="/notebooks/new">New Chat</Link>
               </DropdownMenuItem>
               <SignOutButton />
             </DropdownMenuContent>

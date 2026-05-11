@@ -50,7 +50,7 @@ export function DeleteNotebookDialog({
       } | null;
 
       if (!response.ok) {
-        setError(payload?.error ?? "Could not delete this notebook.");
+        setError(payload?.error ?? "Could not delete this Chat.");
         return;
       }
 
@@ -58,7 +58,7 @@ export function DeleteNotebookDialog({
       router.refresh();
     } catch {
       setError(
-        "Could not delete this notebook. Check your connection and try again."
+        "Could not delete this Chat. Check your connection and try again."
       );
     } finally {
       setPending(false);
@@ -80,7 +80,7 @@ export function DeleteNotebookDialog({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this notebook?</AlertDialogTitle>
+          <AlertDialogTitle>Delete this Chat?</AlertDialogTitle>
           <AlertDialogDescription>
             This will remove its transcript, chat history, and study materials.
           </AlertDialogDescription>

@@ -4,6 +4,14 @@
 
 @layer base {
   :root {
+    --lm-indigo: #3D3BD9;
+    --lm-indigo-deep: #1F1E8A;
+    --lm-amber: #F5B544;
+    --lm-ink: #0E0E1A;
+    --lm-paper: #FAFAF7;
+    --lm-glass-fill: rgba(14, 14, 26, 0.04);
+    --lm-glass-border: rgba(14, 14, 26, 0.1);
+    --lm-glass-strong: rgba(14, 14, 26, 0.08);
     --background: 40 33% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -26,7 +34,16 @@
     --radius: 0.5rem;
   }
 
-  .dark {
+  html.light {
+    --lm-glass-fill: rgba(14, 14, 26, 0.04);
+    --lm-glass-border: rgba(14, 14, 26, 0.1);
+    --lm-glass-strong: rgba(14, 14, 26, 0.08);
+  }
+
+  html.dark {
+    --lm-glass-fill: rgba(255, 255, 255, 0.06);
+    --lm-glass-border: rgba(255, 255, 255, 0.08);
+    --lm-glass-strong: rgba(255, 255, 255, 0.1);
     --background: 222 47% 7%;
     --foreground: 210 40% 98%;
     --card: 222 47% 9%;
@@ -52,15 +69,42 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    min-height: 100%;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
+    background: var(--lm-paper);
+    color: var(--lm-ink);
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
   }
+
+  html.dark body {
+    background: var(--lm-ink);
+    color: var(--lm-paper);
+  }
+
+  html.light body {
+    background: var(--lm-paper);
+    color: var(--lm-ink);
+  }
 }
 
 @layer utilities {
+  .lm-glass {
+    background: var(--lm-glass-fill);
+    border: 1px solid var(--lm-glass-border);
+    backdrop-filter: blur(16px);
+  }
+
+  .lm-wordmark {
+    letter-spacing: -0.02em;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

@@ -90,7 +90,7 @@ export function QuizView({
             </div>
             {answered ? (
               <div className="mt-3 rounded-md bg-muted/30 p-3">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">
+                <p className="text-xs font-semibold text-muted-foreground">
                   Explanation
                 </p>
                 <p className="mt-1 text-sm leading-6">{question.explanation}</p>

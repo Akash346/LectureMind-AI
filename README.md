@@ -1,6 +1,6 @@
 # LectureMind AI
 
-LectureMind AI is a NotebookLM-inspired lecture study workspace. Phase 5 keeps the working Phase 2/3 YouTube ingestion and Phase 4 artifact generation, then adds durable jobs, embeddings, Azure AI Search indexing, safe retrieval fallback, and source-grounded chat.
+LectureMind AI is a grounded lecture study workspace. Phase 5 keeps the working Phase 2/3 YouTube ingestion and Phase 4 artifact generation, then adds durable jobs, embeddings, Azure AI Search indexing, safe retrieval fallback, and source-grounded chat.
 
 Audio/video overviews, reports, slide decks, and Canvas/faculty/provost workflows are still later phases.
 

@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode
+} from "react";
 import {
   BrainCircuit,
   FileText,
@@ -50,6 +56,13 @@ import {
 
 type NotebookStatus = "DRAFT" | "PENDING" | "PROCESSING" | "READY" | "FAILED";
 type JobStatus = "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+
+const artifactStatusLabel: Record<StudioArtifact["status"], string> = {
+  EMPTY: "Empty",
+  GENERATING: "Generating",
+  READY: "Ready",
+  FAILED: "Failed"
+};
 
 type JobPayload = {
   id: string;
@@ -265,7 +278,11 @@ export function StudioArtifactsPanel({
           {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ artifactType: type, language, mode: "async" })
+            body: JSON.stringify({
+              artifactType: type,
+              language,
+              mode: "async"
+            })
           }
         );
         const payload = (await response.json()) as {
@@ -739,7 +756,9 @@ function ArtifactHeader({
         </CardDescription>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-2">
-        <Badge variant={statusVariant(status)}>{status}</Badge>
+        <Badge variant={statusVariant(status)}>
+          {artifactStatusLabel[status]}
+        </Badge>
         <Button
           disabled={disabled || status === "GENERATING"}
           onClick={onGenerate}
@@ -770,12 +789,16 @@ function EmptyArtifactMessage({
   return (
     <div className="flex min-h-16 items-center gap-3 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
       <Layers3 className="h-4 w-4 shrink-0" />
-      {ready ? `${text} Generate in ${languageLabel}.` : "Waiting for transcript evidence."}
+      {ready
+        ? `${text} Generate in ${languageLabel}.`
+        : "Waiting for transcript evidence."}
     </div>
   );
 }
 
-function statusVariant(status: StudioArtifact["status"]): BadgeProps["variant"] {
+function statusVariant(
+  status: StudioArtifact["status"]
+): BadgeProps["variant"] {
   if (status === "READY") {
     return "success";
   }
@@ -825,7 +848,8 @@ function normalizeArtifactList(
   );
 
   return artifactTypes.map(
-    (type) => byType.get(type) ?? createEmptyArtifact(notebookId, type, language)
+    (type) =>
+      byType.get(type) ?? createEmptyArtifact(notebookId, type, language)
   );
 }
 
@@ -894,7 +918,8 @@ function createFailedArtifact({
     status: "FAILED",
     errorType: errorType ?? "UNKNOWN",
     errorTitle: title ?? "Artifact generation failed.",
-    errorMessage: message ?? "Try again. Your transcript evidence is still saved.",
+    errorMessage:
+      message ?? "Try again. Your transcript evidence is still saved.",
     updatedAt: new Date().toISOString()
   };
 }

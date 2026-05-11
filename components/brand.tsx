@@ -1,6 +1,6 @@
-import { BrainCircuit } from "lucide-react";
 import Link from "next/link";
 
+import { LMLogo, LMWordmark } from "@/components/ui/brand";
 import { cn } from "@/lib/utils";
 
 export function Brand({
@@ -12,12 +12,8 @@ export function Brand({
 }) {
   return (
     <Link href={href} className={cn("flex items-center gap-2", className)}>
-      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
-        <BrainCircuit className="h-5 w-5" />
-      </span>
-      <span className="text-base font-semibold tracking-normal">
-        LectureMind AI
-      </span>
+      <LMLogo size={36} />
+      <LMWordmark className="text-base" />
     </Link>
   );
 }

@@ -117,9 +117,7 @@ function StudyGuideSection({
 }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold uppercase text-muted-foreground">
-        {title}
-      </p>
+      <p className="text-xs font-semibold text-muted-foreground">{title}</p>
       <div className="space-y-2">{children}</div>
     </section>
   );
@@ -130,7 +128,10 @@ function CitedTextBlock({
   evidenceById,
   onSeek
 }: {
-  item: { text: string; citations: StudyGuideArtifact["overview"]["citations"] };
+  item: {
+    text: string;
+    citations: StudyGuideArtifact["overview"]["citations"];
+  };
 } & Omit<CitationProps, "citations">) {
   return (
     <div className="rounded-md border p-3">

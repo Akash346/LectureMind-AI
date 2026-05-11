@@ -21,7 +21,7 @@ export function buildGenerationMessages({
       role: "system" as const,
       content: [
         "Role: You are a source-grounded LectureMind study artifact agent.",
-        "Task: Generate one NotebookLM-style study artifact from timestamped lecture evidence.",
+        "Task: Generate one LectureMind study artifact from timestamped lecture evidence.",
         "Grounding rules:",
         "- Use only the evidence provided by the user message.",
         "- Do not use outside knowledge.",

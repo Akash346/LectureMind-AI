@@ -34,13 +34,13 @@ export default async function NewNotebookPage() {
             Dashboard
           </Link>
           <div>
-            <p className="text-sm font-medium text-primary">New notebook</p>
+            <p className="text-sm font-medium text-primary">New Chat</p>
             <h1 className="mt-2 text-3xl font-semibold">
               Add a lecture source
             </h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               Paste a public YouTube lecture URL. LectureMind will create the
-              workspace and save placeholder artifacts for Phase 2 processing.
+              Chat workspace and prepare study materials from the source.
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default async function NewNotebookPage() {
           <CardHeader>
             <CardTitle>Lecture source</CardTitle>
             <CardDescription>
-              No video processing or AI calls happen in Phase 1.
+              Add one lecture link to start your grounded study space.
             </CardDescription>
           </CardHeader>
           <CardContent>

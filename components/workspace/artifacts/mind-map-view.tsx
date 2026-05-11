@@ -15,7 +15,10 @@ export function MindMapView({
   const edgesBySource = new Map<string, MindMapArtifact["edges"]>();
 
   artifact.edges.forEach((edge) => {
-    edgesBySource.set(edge.source, [...(edgesBySource.get(edge.source) ?? []), edge]);
+    edgesBySource.set(edge.source, [
+      ...(edgesBySource.get(edge.source) ?? []),
+      edge
+    ]);
   });
 
   return (
@@ -36,9 +39,7 @@ export function MindMapView({
           .map((node) => (
             <div className="rounded-md border p-3" key={node.id}>
               <p className="text-sm font-semibold">{node.label}</p>
-              <p className="mt-1 text-xs uppercase text-muted-foreground">
-                {node.type}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{node.type}</p>
             </div>
           ))}
       </div>
