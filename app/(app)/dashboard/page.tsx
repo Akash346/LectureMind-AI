@@ -43,7 +43,15 @@ export default async function DashboardPage({
       artifacts: {
         where: {
           type: {
-            in: ["OUTLINE", "MIND_MAP", "QUIZ"]
+            in: [
+              "OUTLINE",
+              "SUMMARY_SHORT",
+              "SUMMARY_MEDIUM",
+              "FLASHCARDS",
+              "QUIZ",
+              "MIND_MAP",
+              "STUDY_GUIDE"
+            ]
           }
         },
         select: {
@@ -82,7 +90,16 @@ function mapNotebookToChat(item: {
     status: string;
   }>;
 }): ChatCard {
-  const isReady = (type: "OUTLINE" | "MIND_MAP" | "QUIZ") =>
+  const isReady = (
+    type:
+      | "OUTLINE"
+      | "SUMMARY_SHORT"
+      | "SUMMARY_MEDIUM"
+      | "FLASHCARDS"
+      | "QUIZ"
+      | "MIND_MAP"
+      | "STUDY_GUIDE"
+  ) =>
     item.artifacts.some(
       (artifact) => artifact.type === type && artifact.status === "READY"
     );
@@ -95,8 +112,11 @@ function mapNotebookToChat(item: {
     createdAt: item.createdAt.toISOString(),
     artifacts: {
       outline: isReady("OUTLINE"),
+      summary: isReady("SUMMARY_SHORT") || isReady("SUMMARY_MEDIUM"),
+      flashcards: isReady("FLASHCARDS"),
       mindMap: isReady("MIND_MAP"),
-      quiz: isReady("QUIZ")
+      quiz: isReady("QUIZ"),
+      report: isReady("STUDY_GUIDE")
     }
   };
 }

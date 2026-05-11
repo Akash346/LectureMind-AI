@@ -86,12 +86,12 @@ const artifactCopy: Record<
     icon: Layers3
   },
   SUMMARY_SHORT: {
-    title: "90-second Summary",
+    title: "90 second Summary",
     description: "A quick cited pass over the lecture.",
     icon: FileText
   },
   SUMMARY_MEDIUM: {
-    title: "5-minute Summary",
+    title: "5 minute Summary",
     description: "A deeper cited section summary.",
     icon: FileText
   },

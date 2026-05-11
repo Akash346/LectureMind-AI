@@ -533,9 +533,9 @@ export function getArtifactJsonSchemaDescription(artifactType: ArtifactType) {
     case "OUTLINE":
       return `{"title":"string","language":"target-language-code","sections":[{"heading":"string","summary":"string","citations":[Citation],"children":[{"heading":"string","summary":"string","citations":[Citation]}]}]}`;
     case "SUMMARY_SHORT":
-      return `{"title":"90-second summary","language":"target-language-code","bullets":[{"text":"string","citations":[Citation]}]}`;
+      return `{"title":"90 second summary","language":"target-language-code","bullets":[{"text":"string","citations":[Citation]}]}`;
     case "SUMMARY_MEDIUM":
-      return `{"title":"5-minute summary","language":"target-language-code","sections":[{"heading":"string","text":"string","citations":[Citation]}]}`;
+      return `{"title":"5 minute summary","language":"target-language-code","sections":[{"heading":"string","text":"string","citations":[Citation]}]}`;
     case "STUDY_GUIDE":
       return `{"title":"string","language":"target-language-code","overview":{"text":"string","citations":[Citation]},"keyConcepts":[{"term":"string","explanation":"string","whyItMatters":"string","citations":[Citation]}],"importantDetails":[{"text":"string","citations":[Citation]}],"examples":[{"text":"string","citations":[Citation]}],"commonMistakes":[{"mistake":"string","correction":"string","citations":[Citation]}],"reviewPlan":[{"step":"string","citations":[Citation]}]}`;
     case "FLASHCARDS":
@@ -554,9 +554,9 @@ export function getModelArtifactJsonSchemaDescription(
     case "OUTLINE":
       return `{"title":"string","language":"target-language-code","sections":[{"heading":"string","summary":"string","citations":["C1"],"children":[{"heading":"string","summary":"string","citations":["C2"]}]}]}`;
     case "SUMMARY_SHORT":
-      return `{"title":"90-second summary","language":"target-language-code","bullets":[{"text":"string","citations":["C1","C2"]}]}`;
+      return `{"title":"90 second summary","language":"target-language-code","bullets":[{"text":"string","citations":["C1","C2"]}]}`;
     case "SUMMARY_MEDIUM":
-      return `{"title":"5-minute summary","language":"target-language-code","sections":[{"heading":"string","text":"string","citations":["C1","C2"]}]}`;
+      return `{"title":"5 minute summary","language":"target-language-code","sections":[{"heading":"string","text":"string","citations":["C1","C2"]}]}`;
     case "STUDY_GUIDE":
       return `{"title":"string","language":"target-language-code","overview":{"text":"string","citations":["C1"]},"keyConcepts":[{"term":"string","explanation":"string","whyItMatters":"string","citations":["C2"]}],"importantDetails":[{"text":"string","citations":["C3"]}],"examples":[{"text":"string","citations":["C4"]}],"commonMistakes":[{"mistake":"string","correction":"string","citations":["C5"]}],"reviewPlan":[{"step":"string","citations":["C6"]}]}`;
     case "FLASHCARDS":

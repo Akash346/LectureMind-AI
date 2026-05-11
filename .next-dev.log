@@ -1,0 +1,424 @@
+
+> lecturemind-ai@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.4.153:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1892ms
+ ○ Compiling /demo ...
+ ✓ Compiled /demo in 8.2s (1751 modules)
+ GET /demo 307 in 8497ms
+ GET /auth/signin 200 in 9248ms
+ GET /start 200 in 9278ms
+ GET / 200 in 9303ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 525ms (215 modules)
+ GET / 200 in 272ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1949ms (1959 modules)
+ GET / 200 in 638ms
+ ○ Compiling /start ...
+ ✓ Compiled /start in 573ms (1179 modules)
+ GET /start 200 in 839ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/auth/session 200 in 4389ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/auth/session 200 in 234ms
+ ✓ Compiled /auth/signin in 403ms (1187 modules)
+ GET /auth/signin 200 in 575ms
+ GET /api/auth/csrf 200 in 96ms
+ POST /api/auth/signout 200 in 133ms
+ GET /api/auth/session 200 in 44ms
+ GET /api/auth/session 200 in 38ms
+ GET /api/auth/providers 200 in 63ms
+ GET /api/auth/csrf 200 in 56ms
+ POST /api/auth/signin/google?prompt=select_account 200 in 225ms
+[auth:debug] {"event":"google_profile","provider":"google","providerEmail":"akashnallagonda9@gmail.com","providerAccountId":"118319501525055450346"}
+[auth:debug] {"event":"adapter_get_user_by_account","provider":"google","providerAccountId":"118319501525055450346","internalUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"sign_in_callback","provider":"google","providerEmail":"akashnallagonda9@gmail.com","providerAccountId":"118319501525055450346","internalUserId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"adapter_get_user_by_account","provider":"google","providerAccountId":"118319501525055450346","internalUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"sign_in_completed","provider":"google","providerAccountId":"118319501525055450346","internalUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com","isNewUser":false}
+ GET /api/auth/callback/google?state=9R0Y72pHv3bFFiSA3CNNoKFDyrJuNt3Krzu1BNiH_Oc&iss=https%3A%2F%2Faccounts.google.com&code=4%2F0AeoWuM8ft5pO0pk2nRzFZ2Lr3ZTYnNJ4iO6vkKQGksrYU9zFhAH0B__dZIqJlkQAbqX9AQ&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile&authuser=0&prompt=none 302 in 856ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 3.3s (2457 modules)
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"dashboard_chats_loaded","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","chatOwnerIds":["cmoz6r9bj0000u1uc3verexfd"],"chatCount":22}
+ GET /dashboard 200 in 4634ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/auth/session 200 in 154ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/auth/session 200 in 112ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"require_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"notebook_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ ○ Compiling /chats/[chatId] ...
+ ✓ Compiled /chats/[chatId] in 3.5s (4023 modules)
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /chats/cmp0pdu6o0003u1kcuu99rs1r 200 in 5429ms
+ POST /dashboard 303 in 5881ms
+ ○ Compiling /api/notebooks/[notebookId]/process ...
+ ✓ Compiled /api/notebooks/[notebookId]/status in 4s (4101 modules)
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 6056ms
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 6056ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_notebook_process","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"api_notebook_process","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 3233ms
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 4728ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 288ms
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 307ms
+[youtube:process] {"event":"started","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","userId":"cmoz6r9bj0000u1uc3verexfd","jobId":"cmp0pe3ss0005u1kcte4et1jk","engine":"hybrid","step":"Validating YouTube URL"}
+[youtube:process] {"event":"started","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","userId":"cmoz6r9bj0000u1uc3verexfd","jobId":"cmp0pe3st0007u1kcdw2y3luh","engine":"hybrid","step":"Validating YouTube URL"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 176ms
+[youtube:transcript] Trying transcript library fallback { videoId: 'cUfLrn3TM3M', reason: 'No transcript is available yet.' }
+[youtube:transcript] Trying transcript library fallback { videoId: 'cUfLrn3TM3M', reason: 'No transcript is available yet.' }
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 216ms
+[youtube:process] {"event":"completed","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","userId":"cmoz6r9bj0000u1uc3verexfd","videoId":"cUfLrn3TM3M","jobId":"cmp0pe3ss0005u1kcte4et1jk","engine":"node","step":"Ready","durationMs":3464,"segmentCount":389}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/process 200 in 9646ms
+[youtube:process] {"event":"completed","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","userId":"cmoz6r9bj0000u1uc3verexfd","videoId":"cUfLrn3TM3M","jobId":"cmp0pe3st0007u1kcdw2y3luh","engine":"node","step":"Ready","durationMs":3569,"segmentCount":389}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/process 200 in 9737ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 192ms
+[auth:debug] {"event":"api_notebook_status","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/status 200 in 163ms
+ ○ Compiling /api/notebooks/[notebookId]/chat ...
+ ✓ Compiled /api/notebooks/[notebookId]/chat in 1464ms (4111 modules)
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[chat] {"event":"request_received","notebookId":"cmp0pdu6o0003u1kcuu99rs1r"}
+[chat] {"event":"retrieval_started","notebookId":"cmp0pdu6o0003u1kcuu99rs1r"}
+[search-config] {"endpointPresent":true,"apiKeyPresent":true,"indexName":"lecturemind-index","indexEnvSource":"AZURE_AI_SEARCH_INDEX","configured":true}
+[chat] {"event":"notebook_validated","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookStatus":"READY","outputLanguageCode":"te","outputLanguageLabel":"Telugu"}
+[chat] {"event":"retrieval_completed","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","retrievalMode":"local_lexical_fallback","retrievedSegmentCount":8,"fallbackReason":"not_indexed_yet","searchConfigured":true,"embeddingsConfigured":true,"indexedSegmentCount":0,"searchIndexName":"lecturemind-index","indexEnvSource":"AZURE_AI_SEARCH_INDEX"}
+[chat] {"event":"model_started","operation":"grounded_chat","retrievalMode":"local_lexical_fallback","retrievedSegmentCount":8}
+[ai:generation] {"event":"completed","operation":"grounded_chat","deployment":"gpt-5.4-mini","durationMs":1556,"usage":{"completion_tokens":142,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":4,"engine_ttft_ms":38,"engine_ttlt_ms":601,"pre_inference_ms":73,"service_tbt_ms":4,"service_ttft_ms":183,"service_ttlt_ms":742,"total_duration_ms":675,"user_visible_ttft_ms":111},"prompt_tokens":911,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":1053}}
+[chat] {"event":"model_completed","operation":"grounded_chat","deployment":"gpt-5.4-mini","durationMs":1558}
+[chat] {"event":"json_parse_started","operation":"grounded_chat"}
+[chat] {"event":"citation_verification_started","citationCount":3}
+[chat] {"event":"response_persisted","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","repaired":false}
+[chat] {"event":"response_returned","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","status":200,"durationMs":2126}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/chat 200 in 4739ms
+ ○ Compiling /api/notebooks/[notebookId]/artifacts/generate ...
+ ✓ Compiled /api/notebooks/[notebookId]/artifacts/generate in 1285ms (4108 modules)
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/generate 202 in 2398ms
+[ai:artifact] {"event":"artifact_evidence_lookup","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","chatId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"OUTLINE","languageCode":"te","segmentCount":778,"evidenceCount":778,"retrievalSource":"prisma_evidence_segments","fallbackReason":null}
+[auth:debug] {"event":"artifact_evidence_compiled","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 313ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 216ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 219ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 212ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 202ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 270ms
+[ai:generation] {"event":"completed","operation":"outline","deployment":"gpt-5.4-mini","durationMs":20386,"usage":{"completion_tokens":3744,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":5,"engine_ttft_ms":1000,"engine_ttlt_ms":18891,"pre_inference_ms":180,"service_tbt_ms":5,"service_ttft_ms":1699,"service_ttlt_ms":19585,"total_duration_ms":19413,"user_visible_ttft_ms":1519},"prompt_tokens":46073,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":49817}}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 330ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 197ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 200ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 210ms
+[ai:generation] {"event":"completed","operation":"verifier_outline","deployment":"gpt-5.4","durationMs":12478,"usage":{"completion_tokens":1073,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":10,"engine_ttft_ms":587,"engine_ttlt_ms":11386,"pre_inference_ms":156,"service_tbt_ms":10,"service_ttft_ms":852,"service_ttlt_ms":11640,"total_duration_ms":11499,"user_visible_ttft_ms":696},"prompt_tokens":34970,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":36043}}
+[ai:verifier] {"event":"issues","phase":"model","artifactType":"OUTLINE","language":"te","issueCount":19,"issues":[{"reason":"verifierModelFail","path":"$.sections[0].summary","problem":"Citation list includes [C53], but the nearby citations array does not include evidence supporting the claim that LangGraph makes more sense for more complicated requirements."},{"reason":"verifierModelFail","path":"$.sections[0].children[0].summary","problem":"The claim about deep research assistants needing many sources and more orchestration is supported by cited bracket refs, but the nearby citations array only covers up to business requirements going beyond a simple chatbot and does not include the deep research assistant/source complexity evidence."},{"reason":"verifierModelFail","path":"$.sections[2].summary","problem":"The summary mentions scraping/cleaning content, evaluating trustworthiness, extracting factual statements, generating a report, and graph orchestration, but the nearby citations array only covers the beginning of the example and not these later steps."},{"reason":"verifierModelFail","path":"$.sections[2].children[0].summary","problem":"The summary includes later traditional-development steps like feeding content to an LLM, evaluating scores, threshold checks, storing facts, and manual orchestration, but the nearby citations array only covers the first few steps."},{"reason":"verifierModelFail","path":"$.sections[2].children[1].summary","problem":"The summary claims the compiled graph orchestrates execution based on configuration, but the nearby citations array only covers streamlined process, nodes, edges, and flow—not compilation/orchestration."},{"reason":"verifierModelFail","path":"$.sections[3].children[0].summary","problem":"The summary claims the sequential demo has no memory and each step is completely independent, but the nearby citations array only covers the early part of the demo and not the memory outcome."},{"reason":"verifierModelFail","path":"$.sections[3].children[1].summary","problem":"The summary mentions farewell using Alice and memory remaining accessible, but the nearby citations array only covers state definition and graph structure, not the later outcome lines."},{"reason":"verifierModelFail","path":"$.sections[4].summary","problem":"The summary mentions tool nodes explicitly, but the cited evidence range in bracket refs and nearby citations for this section is about shopping cart accumulation and generic node types; tool-node support is only in later refs not reflected in nearby citations."},{"reason":"verifierModelFail","path":"$.sections[4].children[0].summary","problem":"The summary says checkout is one of the steps, but the nearby citations array does not include the later evidence showing checkout/status accumulation."},{"reason":"verifierModelFail","path":"$.sections[4].children[1].summary","problem":"The summary lists all four node types, but the nearby citations array only covers the first half of that explanation and omits support for tool-using and conditional nodes."}]}
+[ai:artifact] {"event":"succeeded","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"OUTLINE","outputLanguageCode":"te","outputLanguageLabel":"Telugu","evidenceCount":778,"deployment":"gpt-5.4-mini"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 278ms
+ ○ Compiling /api/notebooks/[notebookId]/artifacts/[artifactType] ...
+ ✓ Compiled /api/notebooks/[notebookId]/artifacts/[artifactType] in 1095ms (4071 modules)
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/OUTLINE?language=en 200 in 2186ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/generate 202 in 240ms
+[ai:artifact] {"event":"artifact_evidence_lookup","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","chatId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"SUMMARY_SHORT","languageCode":"te","segmentCount":778,"evidenceCount":778,"retrievalSource":"prisma_evidence_segments","fallbackReason":null}
+[auth:debug] {"event":"artifact_evidence_compiled","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 294ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 248ms
+[ai:generation] {"event":"completed","operation":"summary_short","deployment":"gpt-5.4-mini","durationMs":8018,"usage":{"completion_tokens":966,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":6,"engine_ttft_ms":1028,"engine_ttlt_ms":6629,"pre_inference_ms":181,"service_tbt_ms":6,"service_ttft_ms":1734,"service_ttlt_ms":7335,"total_duration_ms":7157,"user_visible_ttft_ms":1553},"prompt_tokens":46041,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":47007}}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 395ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 262ms
+[ai:generation] {"event":"completed","operation":"verifier_summary_short","deployment":"gpt-5.4","durationMs":7064,"usage":{"completion_tokens":550,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":10,"engine_ttft_ms":513,"engine_ttlt_ms":6147,"pre_inference_ms":124,"service_tbt_ms":10,"service_ttft_ms":746,"service_ttlt_ms":6358,"total_duration_ms":6245,"user_visible_ttft_ms":623},"prompt_tokens":30340,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":30890}}
+[ai:verifier] {"event":"issues","phase":"model","artifactType":"SUMMARY_SHORT","language":"te","issueCount":9,"issues":[{"reason":"verifierModelFail","path":"bullets[0].text","problem":"Claim says LangChain is suitable for 'simple, deterministic tasks', but the attached citations only include C29 and omit the supporting evidence for 'deterministic tasks' and LangGraph making more sense for complicated use cases."},{"reason":"verifierModelFail","path":"bullets[0].citations","problem":"Nearby claim references [C1,C3,C5,C29,C35,C53], but citations array omits support for C35 and C53."},{"reason":"verifierModelFail","path":"bullets[1].citations","problem":"Text claims nodes and edges organize workflow, node is a computation unit, and edge can represent transition or conditional flow, but citations array only includes evidence up to state graph and omits the supporting node/edge definitions."},{"reason":"verifierModelFail","path":"bullets[2].citations","problem":"Text includes scraping/cleaning, trustworthiness evaluation, factual extraction, report generation, manual orchestration in traditional software, and streamlined execution in LangGraph, but citations array only covers the early setup and omits evidence for most of these claims."},{"reason":"verifierModelFail","path":"bullets[3].citations","problem":"Text claims the deep research assistant state includes topic, URLs, content, score, and facts, but citations array does not include the evidence segments listing those fields."},{"reason":"verifierModelFail","path":"bullets[4].citations","problem":"Text includes the shopping cart demo and state accumulation details, but citations array only covers the sequential/stateful example and omits the shopping cart evidence."},{"reason":"verifierModelFail","path":"bullets[5].citations","problem":"Text claims conditional routing, loops based on quality score or iteration count, tool nodes for external web search, and memory accumulation, but citations array only covers node types and conditional nodes; it omits supporting evidence for loops, tools, and memory."},{"reason":"verifierModelFail","path":"bullets[6].text","problem":"The statement 'this is a production-ready AI research assistant' is asserted as a takeaway, but in the evidence it is a concluding statement by the speaker rather than independently supported fact; this should be softened to reflect that the lecture concludes or presents it that way."},{"reason":"verifierModelFail","path":"bullets[6].citations","problem":"Text claims adaptive research assistant behavior and production-ready conclusion, but citations array only includes workflow structure evidence and omits the later supporting segments for adaptive behavior and the concluding production-ready statement."}]}
+[ai:artifact] {"event":"succeeded","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"SUMMARY_SHORT","outputLanguageCode":"te","outputLanguageLabel":"Telugu","evidenceCount":778,"deployment":"gpt-5.4-mini"}
+[ai:artifact] {"event":"artifact_evidence_lookup","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","chatId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"SUMMARY_MEDIUM","languageCode":"te","segmentCount":778,"evidenceCount":778,"retrievalSource":"prisma_evidence_segments","fallbackReason":null}
+[auth:debug] {"event":"artifact_evidence_compiled","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 269ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 291ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 288ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[ai:generation] {"event":"completed","operation":"summary_medium","deployment":"gpt-5.4-mini","durationMs":10483,"usage":{"completion_tokens":1669,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":5,"engine_ttft_ms":1033,"engine_ttlt_ms":8729,"pre_inference_ms":177,"service_tbt_ms":5,"service_ttft_ms":1723,"service_ttlt_ms":9415,"total_duration_ms":9246,"user_visible_ttft_ms":1546},"prompt_tokens":46057,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":47726}}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 279ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 282ms
+[ai:generation] {"event":"completed","operation":"verifier_summary_medium","deployment":"gpt-5.4","durationMs":3924,"usage":{"completion_tokens":284,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":9,"engine_ttft_ms":522,"engine_ttlt_ms":3155,"pre_inference_ms":120,"service_tbt_ms":9,"service_ttft_ms":724,"service_ttlt_ms":3348,"total_duration_ms":3239,"user_visible_ttft_ms":604},"prompt_tokens":30717,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":31001}}
+[ai:verifier] {"event":"issues","phase":"model","artifactType":"SUMMARY_MEDIUM","language":"te","issueCount":5,"issues":[{"reason":"verifierModelFail","path":"sections[1].citations","problem":"Nearby claims mention shared state as persistent memory and workflow orchestration, but the attached citations only cover state graph, nodes, and edges definitions; they do not support the shared-state/persistent-memory/orchestration claims."},{"reason":"verifierModelFail","path":"sections[3].citations","problem":"Nearby claims mention state fields like topic, remaining URLs, current URL, content, current score, and facts, but the attached citations only support the node-task breakdown and not the state-field examples."},{"reason":"verifierModelFail","path":"sections[4].citations","problem":"Nearby claims include loops, tool integration, and memory/state accumulation, but the attached citations only support conditional routing. The other claims lack supporting nearby citations."},{"reason":"verifierModelFail","path":"sections[5].text","problem":"The claim that 'validation behind the scenes ప్రతి step correctly పని చేస్తుందో confirm చేస్తుంది' is supported by evidence, but the attached citations do not include the relevant validation segments."},{"reason":"verifierModelFail","path":"sections[5].citations","problem":"Attached citations only support workflow components and iterative refinement, but not the later claims about validation, adaptation, refining searches, multiple sources, and comprehensive knowledge."}]}
+[ai:artifact] {"event":"succeeded","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"SUMMARY_MEDIUM","outputLanguageCode":"te","outputLanguageLabel":"Telugu","evidenceCount":778,"deployment":"gpt-5.4-mini"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 329ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/SUMMARY_SHORT?language=en 200 in 255ms
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/SUMMARY_MEDIUM?language=en 200 in 447ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[chat] {"event":"request_received","notebookId":"cmp0pdu6o0003u1kcuu99rs1r"}
+[chat] {"event":"retrieval_started","notebookId":"cmp0pdu6o0003u1kcuu99rs1r"}
+[search-config] {"endpointPresent":true,"apiKeyPresent":true,"indexName":"lecturemind-index","indexEnvSource":"AZURE_AI_SEARCH_INDEX","configured":true}
+[chat] {"event":"notebook_validated","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookStatus":"READY","outputLanguageCode":"te","outputLanguageLabel":"Telugu"}
+[chat] {"event":"retrieval_completed","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","retrievalMode":"local_lexical_fallback","retrievedSegmentCount":8,"fallbackReason":"not_indexed_yet","searchConfigured":true,"embeddingsConfigured":true,"indexedSegmentCount":0,"searchIndexName":"lecturemind-index","indexEnvSource":"AZURE_AI_SEARCH_INDEX"}
+[chat] {"event":"model_started","operation":"grounded_chat","retrievalMode":"local_lexical_fallback","retrievedSegmentCount":8}
+[ai:generation] {"event":"completed","operation":"grounded_chat","deployment":"gpt-5.4-mini","durationMs":1808,"usage":{"completion_tokens":288,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":4,"engine_ttft_ms":36,"engine_ttlt_ms":1290,"pre_inference_ms":62,"service_tbt_ms":4,"service_ttft_ms":153,"service_ttlt_ms":1411,"total_duration_ms":1348,"user_visible_ttft_ms":91},"prompt_tokens":919,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":1207}}
+[chat] {"event":"model_completed","operation":"grounded_chat","deployment":"gpt-5.4-mini","durationMs":1810}
+[chat] {"event":"json_parse_started","operation":"grounded_chat"}
+[chat] {"event":"citation_verification_started","citationCount":4}
+[chat] {"event":"response_persisted","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","repaired":false}
+[chat] {"event":"response_returned","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","status":200,"durationMs":2354}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/chat 200 in 2526ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/generate 202 in 251ms
+[ai:artifact] {"event":"artifact_evidence_lookup","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","chatId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"FLASHCARDS","languageCode":"te","segmentCount":778,"evidenceCount":778,"retrievalSource":"prisma_evidence_segments","fallbackReason":null}
+[auth:debug] {"event":"artifact_evidence_compiled","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 299ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 296ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 312ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 307ms
+[ai:generation] {"event":"completed","operation":"flashcards","deployment":"gpt-5.4-mini","durationMs":12694,"usage":{"completion_tokens":2514,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":4,"engine_ttft_ms":972,"engine_ttlt_ms":11198,"pre_inference_ms":208,"service_tbt_ms":4,"service_ttft_ms":1711,"service_ttlt_ms":11950,"total_duration_ms":11741,"user_visible_ttft_ms":1503},"prompt_tokens":46070,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":48584}}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 314ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 303ms
+[ai:generation] {"event":"completed","operation":"verifier_flashcards","deployment":"gpt-5.4","durationMs":9551,"usage":{"completion_tokens":825,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":9,"engine_ttft_ms":545,"engine_ttlt_ms":8299,"pre_inference_ms":209,"service_tbt_ms":9,"service_ttft_ms":845,"service_ttlt_ms":8595,"total_duration_ms":8390,"user_visible_ttft_ms":636},"prompt_tokens":33638,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":34463}}
+[ai:verifier] {"event":"issues","phase":"model","artifactType":"FLASHCARDS","language":"te","issueCount":15,"issues":[{"reason":"verifierModelFail","path":"cards[2].back","problem":"Claim includes 'LangGraph మరింత sense చేస్తుంది' with citation marker [C53], but the provided citations list does not include evidenceSegmentId for C53 or any segment covering 0:49-0:53."},{"reason":"verifierModelFail","path":"cards[4].back","problem":"The claim lists later traditional software development steps such as evaluating each source, using only sources above 75%, and analyzing/storing facts into a report, but the provided citations only cover up to feeding content to an LLM and do not support those later steps."},{"reason":"verifierModelFail","path":"cards[6].back","problem":"The claim includes nodes for evaluating trustworthiness with an LLM, extracting factual statements, and generating a report, but the provided citations only cover the first two node descriptions and do not support the later node claims."},{"reason":"verifierModelFail","path":"cards[8].back","problem":"The sentence 'ఇవి workflow అంతటా ఉపయోగపడతాయి' is a paraphrased explanatory claim not directly supported by the cited evidence segments, which only enumerate fields."},{"reason":"verifierModelFail","path":"cards[9].back","problem":"The claim says results are populated into 'remaining URLs', but the provided citations stop before the segment that states this explicitly."},{"reason":"verifierModelFail","path":"cards[10].back","problem":"The claim says current score is appended to state, but the provided citations stop before the segment that explicitly mentions 'current score'."},{"reason":"verifierModelFail","path":"cards[11].back","problem":"The claim says the final node generates a report based on facts within the state graph, but the provided citations stop before the segment that explicitly supports this final part."},{"reason":"verifierModelFail","path":"cards[12].back","problem":"The claim includes 'more complicated applications build చేయడానికి help చేస్తాయి', but the provided citations do not include the segment supporting that consequence."},{"reason":"verifierModelFail","path":"cards[13].back","problem":"The claim contrasts sequential chain and stateful graph, including preserved state and later steps using earlier data, but the provided citations only cover the sequential-chain side and do not cite the stateful-graph evidence."},{"reason":"verifierModelFail","path":"cards[14].back","problem":"The claim includes that nodes do not replace state and that state grows at each step, but the provided citations only cover the setup of the shopping cart example and fields, not the later accumulation behavior."}]}
+[ai:artifact] {"event":"succeeded","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"FLASHCARDS","outputLanguageCode":"te","outputLanguageLabel":"Telugu","evidenceCount":778,"deployment":"gpt-5.4-mini"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 334ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/FLASHCARDS?language=en 200 in 271ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/generate 202 in 620ms
+[ai:artifact] {"event":"artifact_evidence_lookup","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","chatId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"QUIZ","languageCode":"te","segmentCount":778,"evidenceCount":778,"retrievalSource":"prisma_evidence_segments","fallbackReason":null}
+[auth:debug] {"event":"artifact_evidence_compiled","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 368ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 278ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 311ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 296ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 360ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 290ms
+[ai:generation] {"event":"completed","operation":"quiz","deployment":"gpt-5.4","durationMs":22215,"usage":{"completion_tokens":1773,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":11,"engine_ttft_ms":764,"engine_ttlt_ms":20990,"pre_inference_ms":268,"service_tbt_ms":11,"service_ttft_ms":1116,"service_ttlt_ms":21334,"total_duration_ms":21071,"user_visible_ttft_ms":847},"prompt_tokens":46134,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":47907}}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 286ms
+[ai:generation] {"event":"completed","operation":"verifier_quiz","deployment":"gpt-5.4","durationMs":1710,"usage":{"completion_tokens":16,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":12,"engine_ttft_ms":594,"engine_ttlt_ms":792,"pre_inference_ms":119,"service_tbt_ms":12,"service_ttft_ms":812,"service_ttlt_ms":1001,"total_duration_ms":891,"user_visible_ttft_ms":693},"prompt_tokens":31797,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":31813}}
+[ai:artifact] {"event":"succeeded","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"QUIZ","outputLanguageCode":"te","outputLanguageLabel":"Telugu","evidenceCount":778,"deployment":"gpt-5.4"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 321ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/QUIZ?language=en 200 in 258ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/generate 202 in 206ms
+[ai:artifact] {"event":"artifact_evidence_lookup","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","chatId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"MIND_MAP","languageCode":"te","segmentCount":778,"evidenceCount":778,"retrievalSource":"prisma_evidence_segments","fallbackReason":null}
+[auth:debug] {"event":"artifact_evidence_compiled","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 317ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 320ms
+[ai:generation] {"event":"completed","operation":"mind_map","deployment":"gpt-5.4-mini","durationMs":6875,"usage":{"completion_tokens":1016,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":4,"engine_ttft_ms":1430,"engine_ttlt_ms":5396,"pre_inference_ms":270,"service_tbt_ms":4,"service_ttft_ms":2213,"service_ttlt_ms":6169,"total_duration_ms":5908,"user_visible_ttft_ms":1944},"prompt_tokens":46120,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":47136}}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 324ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 314ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 366ms
+[ai:generation] {"event":"completed","operation":"verifier_mind_map","deployment":"gpt-5.4","durationMs":11294,"usage":{"completion_tokens":1339,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":7,"engine_ttft_ms":553,"engine_ttlt_ms":10320,"pre_inference_ms":220,"service_tbt_ms":7,"service_ttft_ms":848,"service_ttlt_ms":10614,"total_duration_ms":10398,"user_visible_ttft_ms":628},"prompt_tokens":32256,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":33595}}
+[ai:verifier] {"event":"issues","phase":"model","artifactType":"MIND_MAP","language":"te","issueCount":36,"issues":[{"reason":"verifierModelFail","path":"nodes[0].label","problem":"Artifact should be written in Telugu, but this label is in English ('LangGraph')."},{"reason":"verifierModelFail","path":"nodes[2].label","problem":"Artifact should be written in Telugu, but this label is mostly in English ('Simple chatbot use case')."},{"reason":"verifierModelFail","path":"nodes[3].label","problem":"Artifact should be written in Telugu, but this label is mostly in English ('Deep research assistant use case')."},{"reason":"verifierModelFail","path":"nodes[4].label","problem":"Artifact should be written in Telugu, but this label is in English ('State graph')."},{"reason":"verifierModelFail","path":"nodes[5].label","problem":"Artifact should be written in Telugu, but this label is in English ('Nodes')."},{"reason":"verifierModelFail","path":"nodes[6].label","problem":"Artifact should be written in Telugu, but this label is in English ('Edges')."},{"reason":"verifierModelFail","path":"nodes[7].label","problem":"Artifact should be written in Telugu, but this label is partly in English ('Shared state / persistent memory')."},{"reason":"verifierModelFail","path":"nodes[8].label","problem":"Artifact should be written in Telugu, but this label is in English ('Research state fields')."},{"reason":"verifierModelFail","path":"nodes[9].label","problem":"Artifact should be written in Telugu, but this label is in English ('Search and gather sources')."},{"reason":"verifierModelFail","path":"nodes[10].label","problem":"Artifact should be written in Telugu, but this label is in English ('Scrape and clean content')."}]}
+[ai:artifact] {"event":"succeeded","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"MIND_MAP","outputLanguageCode":"te","outputLanguageLabel":"Telugu","evidenceCount":778,"deployment":"gpt-5.4-mini"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 333ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/MIND_MAP?language=en 200 in 275ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ POST /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/generate 202 in 241ms
+[ai:artifact] {"event":"artifact_evidence_lookup","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","chatId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"STUDY_GUIDE","languageCode":"te","segmentCount":778,"evidenceCount":778,"retrievalSource":"prisma_evidence_segments","fallbackReason":null}
+[auth:debug] {"event":"artifact_evidence_compiled","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","notebookOwnerId":"cmoz6r9bj0000u1uc3verexfd"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 320ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 345ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 311ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 432ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 348ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 338ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 347ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 327ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 338ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 362ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 331ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 327ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 329ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 313ms
+[ai:generation] {"event":"completed","operation":"study_guide","deployment":"gpt-5.4","durationMs":49051,"usage":{"completion_tokens":4010,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":12,"engine_ttft_ms":799,"engine_ttlt_ms":47318,"pre_inference_ms":258,"service_tbt_ms":12,"service_ttft_ms":1159,"service_ttlt_ms":47669,"total_duration_ms":47422,"user_visible_ttft_ms":901},"prompt_tokens":46170,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":50180}}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 354ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 318ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 332ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 354ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 332ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 367ms
+[ai:generation] {"event":"completed","operation":"verifier_study_guide","deployment":"gpt-5.4","durationMs":19654,"usage":{"completion_tokens":2190,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"latency_checkpoint":{"engine_tbt_ms":8,"engine_ttft_ms":638,"engine_ttlt_ms":18775,"pre_inference_ms":148,"service_tbt_ms":8,"service_ttft_ms":860,"service_ttlt_ms":18997,"total_duration_ms":18852,"user_visible_ttft_ms":711},"prompt_tokens":38802,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":40992}}
+[ai:verifier] {"event":"issues","phase":"model","artifactType":"STUDY_GUIDE","language":"te","issueCount":53,"issues":[{"reason":"verifierModelFail","path":"overview.text","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C1' without closing citation and does not match provided citation objects."},{"reason":"verifierModelFail","path":"keyConcepts[0].explanation","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C1' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[0].whyItMatters","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C25' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[1].explanation","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C57' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[1].whyItMatters","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C61' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[2].explanation","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C67' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[2].whyItMatters","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C151' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[3].explanation","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C73' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[3].whyItMatters","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C153' without proper citation formatting."},{"reason":"verifierModelFail","path":"keyConcepts[4].explanation","problem":"Citation text is malformed/unchanged citation requirement violated: contains '[C195' without proper citation formatting."}]}
+[ai:artifact] {"event":"succeeded","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","artifactType":"STUDY_GUIDE","outputLanguageCode":"te","outputLanguageLabel":"Telugu","evidenceCount":778,"deployment":"gpt-5.4"}
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts?language=en 200 in 361ms
+[auth:debug] {"event":"session_created","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+[auth:debug] {"event":"api_user","sessionUserId":"cmoz6r9bj0000u1uc3verexfd","providerEmail":"akashnallagonda9@gmail.com"}
+ GET /api/notebooks/cmp0pdu6o0003u1kcuu99rs1r/artifacts/STUDY_GUIDE?language=en 200 in 336ms
+[?25h

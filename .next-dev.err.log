@@ -1,0 +1,7 @@
+(node:44796) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[env] {"event":"deprecated_aliases_used","aliases":["AZURE_AI_SEARCH_ENDPOINT->AZURE_SEARCH_ENDPOINT","AZURE_AI_SEARCH_API_KEY->AZURE_SEARCH_API_KEY","AZURE_AI_SEARCH_INDEX->AZURE_SEARCH_INDEX_NAME"]}
+[retrieval] {"event":"retrieval_fallback_reason","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","retrievalMode":"local_lexical_fallback","fallbackReason":"not_indexed_yet","searchConfigured":true,"embeddingsConfigured":true,"indexedSegmentCount":0,"searchIndexName":"lecturemind-index","indexEnvSource":"AZURE_AI_SEARCH_INDEX"}
+[env] {"event":"deprecated_aliases_used","aliases":["AZURE_AI_SEARCH_ENDPOINT->AZURE_SEARCH_ENDPOINT","AZURE_AI_SEARCH_API_KEY->AZURE_SEARCH_API_KEY","AZURE_AI_SEARCH_INDEX->AZURE_SEARCH_INDEX_NAME"]}
+[env] {"event":"deprecated_aliases_used","aliases":["AZURE_AI_SEARCH_ENDPOINT->AZURE_SEARCH_ENDPOINT","AZURE_AI_SEARCH_API_KEY->AZURE_SEARCH_API_KEY","AZURE_AI_SEARCH_INDEX->AZURE_SEARCH_INDEX_NAME"]}
+[retrieval] {"event":"retrieval_fallback_reason","notebookId":"cmp0pdu6o0003u1kcuu99rs1r","retrievalMode":"local_lexical_fallback","fallbackReason":"not_indexed_yet","searchConfigured":true,"embeddingsConfigured":true,"indexedSegmentCount":0,"searchIndexName":"lecturemind-index","indexEnvSource":"AZURE_AI_SEARCH_INDEX"}

@@ -80,7 +80,18 @@ const localizedChatCopy: Record<
     safeFallbackAnswer:
       "J'ai trouve des passages pertinents du cours, mais je n'ai pas pu verifier une reponse entierement fondee. Utilise ces passages cites pour revoir la source.",
     broadIntro: "Revise ces points du cours :",
-    followUps: ["Demande-moi d'expliquer un passage cite.", "Demande un resume plus simple."]
+    followUps: ["Demande moi d'expliquer un passage cite.", "Demande un resume plus simple."]
+  },
+  de: {
+    insufficientEvidence:
+      "Ich konnte nicht genug Belege aus der Vorlesung finden, um sicher zu antworten.",
+    safeFallbackAnswer:
+      "Ich habe relevante Stellen in der Vorlesung gefunden, konnte aber keine vollstaendig belegte Antwort pruefen. Nutze diese zitierten Stellen, um die Quelle zu wiederholen.",
+    broadIntro: "Wiederhole diese Punkte aus der Vorlesung:",
+    followUps: [
+      "Bitte erklaere eine zitierte Stelle.",
+      "Bitte gib eine einfachere Zusammenfassung."
+    ]
   },
   ar: {
     insufficientEvidence:

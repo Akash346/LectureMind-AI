@@ -446,7 +446,7 @@ function normalizeArtifactCandidate({
       };
     case "SUMMARY_SHORT":
       return {
-        title: getString(artifactJson.title, "90-second summary"),
+        title: getString(artifactJson.title, "90 second summary"),
         language,
         bullets: getArray(artifactJson.bullets).map((bullet) => ({
           text: getString(getRecordValue(bullet, "text"), ""),
@@ -458,7 +458,7 @@ function normalizeArtifactCandidate({
       };
     case "SUMMARY_MEDIUM":
       return {
-        title: getString(artifactJson.title, "5-minute summary"),
+        title: getString(artifactJson.title, "5 minute summary"),
         language,
         sections: getArray(artifactJson.sections).map((section) => ({
           heading: getString(getRecordValue(section, "heading"), "Section"),

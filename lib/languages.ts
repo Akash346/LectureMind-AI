@@ -1,21 +1,23 @@
 export const supportedOutputLanguages = [
   { value: "en", label: "English" },
   { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
   { value: "hi", label: "Hindi" },
   { value: "te", label: "Telugu" },
-  { value: "fr", label: "French" },
+  { value: "zh", label: "Chinese" },
   { value: "ar", label: "Arabic" },
-  { value: "zh", label: "Chinese" }
 ] as const;
 
 export const outputLanguageCodes = [
   "en",
   "es",
+  "fr",
+  "de",
   "hi",
   "te",
-  "fr",
-  "ar",
-  "zh"
+  "zh",
+  "ar"
 ] as const;
 
 export type OutputLanguageCode = (typeof outputLanguageCodes)[number];

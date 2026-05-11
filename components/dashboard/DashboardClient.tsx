@@ -23,8 +23,11 @@ export type ChatCard = {
   createdAt?: string;
   artifacts?: {
     outline?: boolean;
+    summary?: boolean;
+    flashcards?: boolean;
     mindMap?: boolean;
     quiz?: boolean;
+    report?: boolean;
   };
 };
 
@@ -41,8 +44,11 @@ const spring = { type: "spring" as const, stiffness: 300, damping: 30 };
 
 const artifactLabels = [
   { key: "outline" as const, label: "Outline" },
+  { key: "summary" as const, label: "Summary" },
+  { key: "flashcards" as const, label: "Flashcards" },
+  { key: "quiz" as const, label: "Quiz" },
   { key: "mindMap" as const, label: "Mind Map" },
-  { key: "quiz" as const, label: "Quiz" }
+  { key: "report" as const, label: "Report" }
 ];
 
 export function DashboardClient({

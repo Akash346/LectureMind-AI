@@ -21,12 +21,12 @@ export async function runSummaryAgent(
       evidenceText: formatEvidencePacketForPrompt(packet),
       guidance: isShort
         ? [
-            "Produce a concise 90-second summary as 5 to 8 bullets.",
+            "Produce a concise 90 second summary as 5 to 8 bullets.",
             "Each bullet should capture one major lecture idea.",
             "Every bullet must include citations."
           ].join("\n")
         : [
-            "Produce a 5-minute summary with clear sections.",
+            "Produce a 5 minute summary with clear sections.",
             "Each section should synthesize related evidence without adding outside facts.",
             "Every section must include citations.",
             "Include full study guide handoff notes only when supported by lecture evidence."

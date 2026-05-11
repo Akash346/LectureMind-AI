@@ -11,7 +11,7 @@ const paramsSchema = z.object({
 });
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ notebookId: string }> }
 ) {
   const user = await getApiUser();
@@ -26,11 +26,9 @@ export async function GET(
     return NextResponse.json({ error: "Invalid notebook." }, { status: 400 });
   }
 
-  const url = new URL(request.url);
   const language = await resolveLanguage({
     notebookId: parsedParams.data.notebookId,
-    userId: user.id,
-    requestedLanguage: url.searchParams.get("language")
+    userId: user.id
   });
   const artifacts = await listArtifacts({
     notebookId: parsedParams.data.notebookId,
@@ -51,17 +49,11 @@ export async function GET(
 
 async function resolveLanguage({
   notebookId,
-  userId,
-  requestedLanguage
+  userId
 }: {
   notebookId: string;
   userId: string;
-  requestedLanguage: string | null;
 }) {
-  if (requestedLanguage) {
-    return normalizeArtifactLanguage(requestedLanguage);
-  }
-
   const notebook = await prisma.notebook.findFirst({
     where: {
       id: notebookId,

@@ -49,7 +49,7 @@ export function SummaryView({
           </div>
         ) : (
           shortFallback ?? (
-            <EmptySummary label="Generate the 90-second summary to fill this tab." />
+            <EmptySummary label="Generate the 90 second summary to fill this tab." />
           )
         )}
       </TabsContent>
@@ -73,7 +73,7 @@ export function SummaryView({
           </div>
         ) : (
           mediumFallback ?? (
-            <EmptySummary label="Generate the 5-minute summary to fill this tab." />
+            <EmptySummary label="Generate the 5 minute summary to fill this tab." />
           )
         )}
       </TabsContent>

@@ -66,9 +66,7 @@ export async function POST(
     return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
   }
 
-  const language = normalizeArtifactLanguage(
-    parsedBody.data.language ?? notebook.language
-  );
+  const language = normalizeArtifactLanguage(notebook.language);
   const requestedTypes = getRequestedTypes(parsedBody.data);
 
   try {

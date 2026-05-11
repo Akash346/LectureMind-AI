@@ -14,8 +14,16 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { useDemoStore } from "@/lib/stores/useDemoStore";
 import { isValidYouTubeUrl } from "@/lib/utils/youtube";
+import { languageOptions } from "@/lib/validators";
 
 type NewChatSheetProps = {
   open: boolean;
@@ -32,6 +40,7 @@ export function NewChatSheet({
   const addDemoChat = useDemoStore((state) => state.addDemoChat);
   const [state, formAction] = useFormState(createNotebook, {});
   const [url, setUrl] = React.useState("");
+  const [language, setLanguage] = React.useState("en");
   const [clientError, setClientError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -73,19 +82,38 @@ export function NewChatSheet({
           className="space-y-4"
           onSubmit={handleSubmit}
         >
-          <input name="language" type="hidden" value="en" />
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="sourceUrl">
-              Lecture URL
-            </label>
-            <Input
-              id="sourceUrl"
-              name="sourceUrl"
-              onChange={(event) => setUrl(event.target.value)}
-              placeholder="Paste a YouTube lecture URL"
-              type="url"
-              value={url}
-            />
+          <input name="language" type="hidden" value={language} />
+          <div className="flex items-end gap-3">
+            <div className="min-w-0 flex-1 space-y-2">
+              <label className="text-sm font-medium" htmlFor="sourceUrl">
+                Lecture URL
+              </label>
+              <Input
+                id="sourceUrl"
+                name="sourceUrl"
+                onChange={(event) => setUrl(event.target.value)}
+                placeholder="Paste a YouTube lecture URL"
+                type="url"
+                value={url}
+              />
+            </div>
+            <div className="w-40 shrink-0 space-y-2">
+              <label className="text-sm font-medium" htmlFor="language">
+                Study language
+              </label>
+              <Select value={language} onValueChange={setLanguage}>
+                <SelectTrigger id="language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {languageOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           {clientError ? (
             <p className="text-sm text-red-600 dark:text-red-300">

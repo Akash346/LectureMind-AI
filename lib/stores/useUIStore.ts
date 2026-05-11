@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 
+import type { ArtifactType } from "@/lib/stores/useArtifactsStore";
+
 export type ThemeMode = "light" | "dark";
 
 type UIState = {
@@ -9,10 +11,12 @@ type UIState = {
   hasHydratedTheme: boolean;
   leftPaneSize: number;
   rightPaneSize: number;
+  activeArtifact: ArtifactType | null;
   hydrateTheme: () => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
   setPaneSizes: (leftPaneSize: number, rightPaneSize: number) => void;
+  setActiveArtifact: (artifact: ArtifactType | null) => void;
 };
 
 const storageKey = "lecturemind_theme";
@@ -34,6 +38,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   hasHydratedTheme: false,
   leftPaneSize: 32,
   rightPaneSize: 36,
+  activeArtifact: null,
   hydrateTheme: () => {
     const theme = getStoredTheme();
     applyTheme(theme);
@@ -51,5 +56,6 @@ export const useUIStore = create<UIState>((set, get) => ({
     get().setTheme(nextTheme);
   },
   setPaneSizes: (leftPaneSize, rightPaneSize) =>
-    set({ leftPaneSize, rightPaneSize })
+    set({ leftPaneSize, rightPaneSize }),
+  setActiveArtifact: (artifact) => set({ activeArtifact: artifact })
 }));

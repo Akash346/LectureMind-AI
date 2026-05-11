@@ -126,6 +126,19 @@ export async function generateArtifact({
     return null;
   }
 
+  logArtifactEvidenceLookup({
+    notebookId,
+    artifactType: parsedType.data,
+    language: normalizedLanguage,
+    segmentCount: notebook._count.evidenceSegments,
+    fallbackReason:
+      notebook.status !== "READY"
+        ? "notebook_not_ready"
+        : notebook._count.evidenceSegments < MIN_EVIDENCE_SEGMENTS
+          ? "too_few_segments"
+          : null
+  });
+
   await prisma.artifact.upsert({
     where: {
       notebookId_type_language: {
@@ -339,6 +352,35 @@ export async function generateAllArtifacts({
   }
 
   return results;
+}
+
+function logArtifactEvidenceLookup({
+  notebookId,
+  artifactType,
+  language,
+  segmentCount,
+  fallbackReason
+}: {
+  notebookId: string;
+  artifactType: ArtifactType;
+  language: LanguageCode;
+  segmentCount: number;
+  fallbackReason: string | null;
+}) {
+  console.info(
+    "[ai:artifact]",
+    JSON.stringify({
+      event: "artifact_evidence_lookup",
+      notebookId,
+      chatId: notebookId,
+      artifactType,
+      languageCode: language,
+      segmentCount,
+      evidenceCount: segmentCount,
+      retrievalSource: "prisma_evidence_segments",
+      fallbackReason
+    })
+  );
 }
 
 async function runAgentForArtifact(

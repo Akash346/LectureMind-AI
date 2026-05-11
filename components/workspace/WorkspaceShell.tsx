@@ -7,10 +7,11 @@ import {
   Separator as PanelResizeHandle,
   useDefaultLayout
 } from "react-resizable-panels";
-import { AnimatePresence, motion } from "motion/react";
 
 import { ArtifactDock } from "./ArtifactDock";
+import { ArtifactPanel } from "./ArtifactPanel";
 import { ChatRail } from "./ChatRail";
+import { ChatSurface, type ChatMessage } from "./ChatSurface";
 import { VideoPanel } from "./VideoPanel";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 
@@ -20,31 +21,95 @@ type WorkspaceChat = {
   videoUrl?: string;
   thumbnailUrl?: string;
   createdAt?: string;
+  status?: string;
+  language?: string;
+  videoId?: string | null;
+  videoTitle?: string | null;
+  durationSec?: number | null;
+  errorType?: string | null;
+  errorMessage?: string | null;
+  segmentCount?: number;
 };
 
 type WorkspaceShellProps = {
   activeChat: WorkspaceChat;
   chats: WorkspaceChat[];
+  initialMessages?: ChatMessage[];
   isDemo?: boolean;
 };
 
 export function WorkspaceShell({
   activeChat,
   chats,
+  initialMessages = [],
   isDemo = false
 }: WorkspaceShellProps) {
-  const [rightOpen] = React.useState(true);
+  const [status, setStatus] = React.useState(() =>
+    normalizeWorkspaceStatus(activeChat, isDemo)
+  );
+  const processStartedRef = React.useRef(false);
   const workspaceLayout = useDefaultLayout({
-    id: "workspace-layout",
-    panelIds: ["left", "center", "right"]
+    id: "workspace-layout-v2",
+    panelIds: ["left", "center"]
   });
+
+  React.useEffect(() => {
+    setStatus(normalizeWorkspaceStatus(activeChat, isDemo));
+    processStartedRef.current = false;
+  }, [activeChat, isDemo]);
+
+  const refreshStatus = React.useCallback(async () => {
+    if (isDemo) return;
+
+    const response = await fetch(`/api/notebooks/${activeChat.id}/status`, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) return;
+
+    const payload = (await response.json()) as WorkspaceStatus;
+    setStatus((current) => ({
+      ...current,
+      ...payload,
+      language: current.language
+    }));
+  }, [activeChat.id, isDemo]);
+
+  React.useEffect(() => {
+    if (isDemo || status.status !== "PENDING" || processStartedRef.current) {
+      return;
+    }
+
+    processStartedRef.current = true;
+    void fetch(`/api/notebooks/${activeChat.id}/process`, {
+      method: "POST"
+    }).finally(() => {
+      void refreshStatus();
+    });
+  }, [activeChat.id, isDemo, refreshStatus, status.status]);
+
+  React.useEffect(() => {
+    if (isDemo || !["PENDING", "PROCESSING"].includes(status.status)) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      void refreshStatus();
+    }, 1500);
+
+    return () => window.clearInterval(interval);
+  }, [isDemo, refreshStatus, status.status]);
+
+  const videoUrl = status.videoId
+    ? `https://www.youtube.com/watch?v=${status.videoId}`
+    : activeChat.videoUrl;
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-lm-paper text-lm-ink dark:bg-lm-ink dark:text-lm-paper">
       <WorkspaceHeader title={activeChat.title} isDemo={isDemo} />
       <PanelGroup
-        id="workspace-layout"
-        data-auto-save-id="workspace-layout"
+        id="workspace-layout-v2"
+        data-auto-save-id="workspace-layout-v2"
         defaultLayout={workspaceLayout.defaultLayout}
         onLayoutChanged={workspaceLayout.onLayoutChanged}
         orientation="horizontal"
@@ -59,54 +124,73 @@ export function WorkspaceShell({
         </Panel>
         <ResizeHandle />
         <Panel id="center" minSize="40%">
-          <PanelGroup orientation="vertical">
-            <Panel id="video" defaultSize="48%" minSize="28%">
-              <section className="h-full overflow-y-auto p-4">
-                <VideoPanel videoUrl={activeChat.videoUrl} />
-              </section>
-            </Panel>
-            <ResizeHandle direction="vertical" />
-            <Panel id="chat" minSize="24%">
-              <section className="flex h-full items-center justify-center overflow-y-auto border-t border-black/10 p-6 text-sm text-black/55 dark:border-white/10 dark:text-white/55">
-                Chat coming next phase
-              </section>
-            </Panel>
-          </PanelGroup>
-        </Panel>
-        <ResizeHandle />
-        <Panel
-          id="right"
-          collapsible
-          collapsedSize="0%"
-          defaultSize="18%"
-          minSize="4%"
-          maxSize="28%"
-        >
-          <aside className="flex h-full min-h-0">
-            <AnimatePresence initial={false}>
-              {rightOpen ? (
-                <motion.section
-                  key="artifact-panel"
-                  className="flex min-w-0 flex-1 items-center justify-center overflow-y-auto p-4 text-center text-sm text-black/55 dark:text-white/55"
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 12 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30
-                  }}
-                >
-                  Artifact panel coming next phase
-                </motion.section>
-              ) : null}
-            </AnimatePresence>
-            <ArtifactDock />
-          </aside>
+          <div className="flex h-full min-h-0">
+            <div className="min-w-0 flex-1">
+              <PanelGroup orientation="vertical">
+                <Panel id="video" defaultSize="48%" minSize="28%">
+                  <section className="h-full overflow-y-auto p-4">
+                    <VideoPanel
+                      errorMessage={status.errorMessage}
+                      status={status.status}
+                      title={status.videoTitle ?? activeChat.title}
+                      videoUrl={videoUrl}
+                    />
+                  </section>
+                </Panel>
+                <ResizeHandle direction="vertical" />
+                <Panel id="chat" minSize="24%">
+                  <ChatSurface
+                    chatId={activeChat.id}
+                    evidenceCount={status.segmentCount}
+                    initialMessages={initialMessages}
+                    isDemo={isDemo}
+                    language={status.language}
+                    notebookStatus={status.status}
+                  />
+                </Panel>
+              </PanelGroup>
+            </div>
+            <ArtifactDock
+              canGenerate={
+                isDemo || (status.status === "READY" && status.segmentCount > 0)
+              }
+              chatId={activeChat.id}
+              isDemo={isDemo}
+              language={status.language}
+            />
+            <ArtifactPanel chatId={activeChat.id} />
+          </div>
         </Panel>
       </PanelGroup>
     </main>
   );
+}
+
+type WorkspaceStatus = {
+  status: string;
+  videoId: string | null;
+  videoTitle: string | null;
+  durationSec: number | null;
+  errorType: string | null;
+  errorMessage: string | null;
+  segmentCount: number;
+  language: string;
+};
+
+function normalizeWorkspaceStatus(
+  chat: WorkspaceChat,
+  isDemo: boolean
+): WorkspaceStatus {
+  return {
+    status: isDemo ? "READY" : chat.status ?? "PENDING",
+    videoId: chat.videoId ?? null,
+    videoTitle: chat.videoTitle ?? null,
+    durationSec: chat.durationSec ?? null,
+    errorType: chat.errorType ?? null,
+    errorMessage: chat.errorMessage ?? null,
+    segmentCount: isDemo ? Math.max(chat.segmentCount ?? 3, 3) : chat.segmentCount ?? 0,
+    language: chat.language ?? "en"
+  };
 }
 
 function ResizeHandle({ direction = "horizontal" }: { direction?: "horizontal" | "vertical" }) {
