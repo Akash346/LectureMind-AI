@@ -17,6 +17,7 @@ from .models import (
     WorkerFailureResponse,
 )
 from .youtube_worker import process_youtube
+from .ytdlp_options import get_ytdlp_cookie_diagnostics
 
 
 load_dotenv()
@@ -24,6 +25,19 @@ configure_logging()
 
 logger = logging.getLogger("lecturemind.worker")
 app = FastAPI(title="LectureMind Worker", version="phase-3")
+
+
+@app.on_event("startup")
+def log_worker_config() -> None:
+    log_event(
+        logger,
+        "worker.config",
+        **get_ytdlp_cookie_diagnostics(),
+        azureSpeechConfigured=bool(
+            os.getenv("AZURE_SPEECH_KEY", "").strip()
+            and os.getenv("AZURE_SPEECH_REGION", "").strip()
+        ),
+    )
 
 
 @app.get("/health")

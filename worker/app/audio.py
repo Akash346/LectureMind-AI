@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .errors import WorkerProcessingError, classify_ytdlp_error
 from .logging_config import log_event
+from .ytdlp_options import build_audio_options
 
 
 def prepare_audio(
@@ -80,33 +81,8 @@ def download_audio(
         ) from error
 
     output_template = str(workdir / "audio.%(ext)s")
-    options = {
-        "format": "bestaudio/best",
-        "outtmpl": output_template,
-        "quiet": True,
-        "no_warnings": True,
-        "noplaylist": True,
-        "retries": 2,
-        "socket_timeout": 30,
-    }
-
     log_event(logger, "worker.audio.download.start", requestId=request_id)
-
-    try:
-        with yt_dlp.YoutubeDL(options) as downloader:
-            downloader.download([video_url])
-    except Exception as error:  # yt-dlp raises a mix of custom exception types.
-        classified = classify_ytdlp_error(error)
-        if classified.type in {
-            "PRIVATE_VIDEO",
-            "MEMBERS_ONLY",
-            "LOGIN_REQUIRED",
-            "VIDEO_UNAVAILABLE",
-            "AGE_RESTRICTED",
-            "REGION_BLOCKED",
-        }:
-            raise classified
-        raise WorkerProcessingError("AUDIO_EXTRACTION_FAILED", str(error)) from error
+    download_with_fallbacks(yt_dlp, video_url, output_template, workdir, request_id, logger)
 
     candidates = [
         path
@@ -121,3 +97,69 @@ def download_audio(
         )
 
     return max(candidates, key=lambda path: path.stat().st_size)
+
+
+def download_with_fallbacks(
+    yt_dlp_module: object,
+    video_url: str,
+    output_template: str,
+    workdir: Path,
+    request_id: str,
+    logger: logging.Logger,
+) -> None:
+    format_selectors = ["bestaudio/best", "best"]
+    last_error: Exception | None = None
+
+    for index, format_selector in enumerate(format_selectors):
+        options = build_audio_options(
+            output_template,
+            format_selector=format_selector,
+        )
+        try:
+            with yt_dlp_module.YoutubeDL(options) as downloader:  # type: ignore[attr-defined]
+                downloader.download([video_url])
+            return
+        except Exception as error:  # yt-dlp raises a mix of custom exception types.
+            last_error = error
+            classified = classify_ytdlp_error(error)
+            if classified.type in {
+                "PRIVATE_VIDEO",
+                "MEMBERS_ONLY",
+                "LOGIN_REQUIRED",
+                "VIDEO_UNAVAILABLE",
+                "AGE_RESTRICTED",
+                "REGION_BLOCKED",
+            }:
+                raise classified
+
+            if index < len(format_selectors) - 1 and is_format_unavailable(error):
+                remove_partial_audio_files(workdir)
+                log_event(
+                    logger,
+                    "worker.audio.download.retry_format",
+                    requestId=request_id,
+                    formatSelector=format_selectors[index + 1],
+                )
+                continue
+
+            break
+
+    raise WorkerProcessingError(
+        "AUDIO_EXTRACTION_FAILED",
+        str(last_error) if last_error else "yt-dlp audio download failed.",
+    )
+
+
+def is_format_unavailable(error: Exception) -> bool:
+    message = str(error).lower()
+    return (
+        "requested format is not available" in message
+        or "no video formats found" in message
+        or "no suitable formats" in message
+    )
+
+
+def remove_partial_audio_files(workdir: Path) -> None:
+    for path in workdir.glob("audio.*"):
+        if path.is_file():
+            path.unlink(missing_ok=True)

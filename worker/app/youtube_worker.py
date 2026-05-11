@@ -21,6 +21,7 @@ from .models import (
     WorkerSegment,
     WorkerSuccessResponse,
 )
+from .ytdlp_options import build_metadata_options
 
 
 YOUTUBE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
@@ -170,14 +171,7 @@ def extract_metadata(normalized_url: str) -> dict[str, Any]:
             "yt-dlp is not installed in the worker environment.",
         ) from error
 
-    options = {
-        "quiet": True,
-        "no_warnings": True,
-        "skip_download": True,
-        "noplaylist": True,
-        "socket_timeout": 30,
-        "retries": 2,
-    }
+    options = build_metadata_options()
 
     try:
         with yt_dlp.YoutubeDL(options) as downloader:

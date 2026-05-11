@@ -12,6 +12,11 @@ UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE = (
     "be processed."
 )
 
+YOUTUBE_BLOCKED_AUTOMATION_MESSAGE = (
+    "YouTube blocked automated access for this video. Try another public lecture "
+    "or upload a file instead."
+)
+
 
 ERROR_COPY: dict[WorkerErrorType, tuple[str, str, bool]] = {
     "PRIVATE_VIDEO": (
@@ -26,7 +31,7 @@ ERROR_COPY: dict[WorkerErrorType, tuple[str, str, bool]] = {
     ),
     "LOGIN_REQUIRED": (
         "This video requires sign-in.",
-        UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE,
+        YOUTUBE_BLOCKED_AUTOMATION_MESSAGE,
         False,
     ),
     "VIDEO_UNAVAILABLE": (

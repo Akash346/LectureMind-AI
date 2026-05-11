@@ -10,3 +10,6 @@ dev-server*.log
 worker/.venv
 worker/**/__pycache__
 tree.txt
+worker/cookies.txt
+cookies.txt
+*.cookies.txt

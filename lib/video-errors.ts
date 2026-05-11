@@ -35,6 +35,8 @@ export const examplePublicLectureLinks = [
 
 export const unsupportedRestrictedVideoMessage =
   "LectureMind supports public educational YouTube videos. This video appears to be private, restricted, age restricted, unavailable, or requires sign in. Please try a public video with captions, or a public lecture video that can be processed.";
+export const youtubeBlockedAutomationMessage =
+  "YouTube blocked automated access for this video. Try another public lecture or upload a file instead.";
 
 export const videoErrorCopy: Record<VideoErrorType, VideoErrorCopy> = {
   PRIVATE_VIDEO: {
@@ -51,7 +53,7 @@ export const videoErrorCopy: Record<VideoErrorType, VideoErrorCopy> = {
   },
   LOGIN_REQUIRED: {
     userTitle: "This video requires sign-in.",
-    userMessage: unsupportedRestrictedVideoMessage,
+    userMessage: youtubeBlockedAutomationMessage,
     retryable: false,
     examples: [...examplePublicLectureLinks]
   },
