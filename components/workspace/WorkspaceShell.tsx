@@ -5,8 +5,7 @@ import {
   Group as PanelGroup,
   Panel,
   Separator as PanelResizeHandle,
-  type LayoutStorage,
-  useDefaultLayout
+  type Layout
 } from "react-resizable-panels";
 
 import { ArtifactDock } from "./ArtifactDock";
@@ -43,16 +42,8 @@ type WorkspaceShellProps = {
   } | null;
 };
 
-const serverLayoutStorage: LayoutStorage = {
-  getItem: () => null,
-  setItem: () => undefined
-};
-
-function getLayoutStorage(): LayoutStorage {
-  return typeof window === "undefined"
-    ? serverLayoutStorage
-    : window.localStorage;
-}
+const workspaceLayoutId = "workspace-layout-v2";
+const workspacePanelIds = ["left", "center"] as const;
 
 export function WorkspaceShell({
   activeChat,
@@ -68,11 +59,10 @@ export function WorkspaceShell({
     React.useState<WorkspaceIndexStatus | null>(null);
   const processStartedRef = React.useRef(false);
   const indexStartedRef = React.useRef(false);
-  const workspaceLayout = useDefaultLayout({
-    id: "workspace-layout-v2",
-    panelIds: ["left", "center"],
-    storage: getLayoutStorage()
-  });
+  const workspaceLayout = useSafePanelLayout(
+    workspaceLayoutId,
+    workspacePanelIds
+  );
 
   React.useEffect(() => {
     setStatus(normalizeWorkspaceStatus(activeChat, isDemo));
@@ -129,11 +119,11 @@ export function WorkspaceShell({
       return;
     }
 
-    const interval = window.setInterval(() => {
+    const interval = setInterval(() => {
       void refreshStatus();
     }, 1500);
 
-    return () => window.clearInterval(interval);
+    return () => clearInterval(interval);
   }, [isDemo, refreshStatus, status.status]);
 
   React.useEffect(() => {
@@ -179,11 +169,11 @@ export function WorkspaceShell({
       return;
     }
 
-    const interval = window.setInterval(() => {
+    const interval = setInterval(() => {
       void refreshIndexStatus();
     }, 2500);
 
-    return () => window.clearInterval(interval);
+    return () => clearInterval(interval);
   }, [indexStatus, isDemo, refreshIndexStatus]);
 
   const videoUrl = status.videoId
@@ -194,8 +184,9 @@ export function WorkspaceShell({
     <main className="flex h-screen flex-col overflow-hidden bg-lm-paper text-lm-ink dark:bg-lm-ink dark:text-lm-paper">
       <WorkspaceHeader title={activeChat.title} isDemo={isDemo} user={user} />
       <PanelGroup
-        id="workspace-layout-v2"
-        data-auto-save-id="workspace-layout-v2"
+        key={workspaceLayout.layoutKey}
+        id={workspaceLayoutId}
+        data-auto-save-id={workspaceLayoutId}
         defaultLayout={workspaceLayout.defaultLayout}
         onLayoutChanged={workspaceLayout.onLayoutChanged}
         orientation="horizontal"
@@ -285,6 +276,87 @@ function normalizeWorkspaceStatus(
     segmentCount: isDemo ? Math.max(chat.segmentCount ?? 3, 3) : chat.segmentCount ?? 0,
     language: chat.language ?? "en"
   };
+}
+
+function useSafePanelLayout(
+  id: string,
+  panelIds: readonly string[]
+): {
+  defaultLayout: Layout | undefined;
+  layoutKey: string;
+  onLayoutChanged: (layout: Layout) => void;
+} {
+  const storageKey = React.useMemo(
+    () => `react-resizable-panels:${[id, ...panelIds].join(":")}`,
+    [id, panelIds]
+  );
+  const [defaultLayout, setDefaultLayout] = React.useState<Layout | undefined>();
+
+  React.useEffect(() => {
+    setDefaultLayout(readPanelLayout(storageKey, panelIds));
+  }, [panelIds, storageKey]);
+
+  const onLayoutChanged = React.useCallback(
+    (layout: Layout) => {
+      safeLocalStorageSet(storageKey, JSON.stringify(layout));
+    },
+    [storageKey]
+  );
+
+  return {
+    defaultLayout,
+    layoutKey: defaultLayout ? JSON.stringify(defaultLayout) : "default",
+    onLayoutChanged
+  };
+}
+
+function readPanelLayout(
+  storageKey: string,
+  panelIds: readonly string[]
+): Layout | undefined {
+  const raw = safeLocalStorageGet(storageKey, null);
+  if (!raw) return undefined;
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return undefined;
+    }
+
+    const layout = parsed as Record<string, unknown>;
+    const values = panelIds.map((panelId) => layout[panelId]);
+
+    if (values.every((value) => typeof value === "number")) {
+      return Object.fromEntries(
+        panelIds.map((panelId, index) => [panelId, values[index] as number])
+      ) as Layout;
+    }
+  } catch {
+    return undefined;
+  }
+
+  return undefined;
+}
+
+function safeLocalStorageGet(key: string, fallback: string | null) {
+  if (typeof window === "undefined") return fallback;
+
+  try {
+    return window.localStorage.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeLocalStorageSet(key: string, value: string) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Layout persistence is optional; rendering should never depend on it.
+  }
 }
 
 function ResizeHandle({ direction = "horizontal" }: { direction?: "horizontal" | "vertical" }) {

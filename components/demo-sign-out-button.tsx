@@ -13,6 +13,8 @@ export function DemoSignOutButton({ className }: DemoSignOutButtonProps) {
 
   function handleSignOut() {
     resetDemo();
+    if (typeof window === "undefined") return;
+
     window.sessionStorage.removeItem("lecturemind_demo");
     window.sessionStorage.removeItem("lecturemind-demo");
     window.location.assign("/demo/logout");

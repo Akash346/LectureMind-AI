@@ -201,7 +201,7 @@ export function StudioArtifactsPanel({
       return;
     }
 
-    const interval = window.setInterval(() => {
+    const interval = setInterval(() => {
       setActiveSteps((current) => {
         const next = { ...current };
         generating.forEach((type) => {
@@ -211,7 +211,7 @@ export function StudioArtifactsPanel({
       });
     }, 2500);
 
-    return () => window.clearInterval(interval);
+    return () => clearInterval(interval);
   }, [generating]);
 
   const waitForJob = useCallback(async (jobId: string) => {
@@ -925,5 +925,5 @@ function createFailedArtifact({
 }
 
 function sleep(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

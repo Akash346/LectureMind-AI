@@ -145,6 +145,8 @@ export function ReportView({ data }: { data: unknown }) {
   const headings = getHeadings(text);
 
   function downloadMarkdown() {
+    if (typeof document === "undefined") return;
+
     const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");

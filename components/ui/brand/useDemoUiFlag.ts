@@ -9,6 +9,11 @@ export function useDemoUiFlag() {
 
   React.useEffect(() => {
     const fromQuery = searchParams.get("demo") === "1";
+    if (typeof window === "undefined") {
+      setIsDemoUi(fromQuery);
+      return;
+    }
+
     const fromStorage =
       window.sessionStorage.getItem("lecturemind_demo") === "true" ||
       window.sessionStorage.getItem("lecturemind-demo") === "true";

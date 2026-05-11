@@ -105,6 +105,8 @@ export function SummaryView({ data }: { data: unknown }) {
   const text = getSummaryText(data, active as "short" | "medium");
 
   async function copyText() {
+    if (typeof navigator === "undefined" || !navigator.clipboard) return;
+
     await navigator.clipboard.writeText(text);
   }
 

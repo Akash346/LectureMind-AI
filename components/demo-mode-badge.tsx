@@ -11,6 +11,8 @@ export function DemoModeBadge() {
   const startDemo = useDemoStore((state) => state.startDemo);
 
   React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if (
       searchParams.get("demo") === "1" ||
       window.sessionStorage.getItem("lecturemind_demo") === "true"

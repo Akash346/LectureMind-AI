@@ -48,9 +48,9 @@ export function VideoPanel({
     if (playerFlashKey === 0) return;
 
     setIsFlashing(true);
-    const timeout = window.setTimeout(() => setIsFlashing(false), 300);
+    const timeout = setTimeout(() => setIsFlashing(false), 300);
 
-    return () => window.clearTimeout(timeout);
+    return () => clearTimeout(timeout);
   }, [playerFlashKey]);
 
   React.useEffect(() => {

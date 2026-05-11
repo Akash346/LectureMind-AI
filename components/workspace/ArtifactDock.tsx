@@ -158,13 +158,13 @@ export function ArtifactDock({
 
     if (generatingTypes.length === 0 || isDemo) return;
 
-    const interval = window.setInterval(() => {
+    const interval = setInterval(() => {
       for (const type of generatingTypes) {
         void pollArtifact(type);
       }
     }, 3000);
 
-    return () => window.clearInterval(interval);
+    return () => clearInterval(interval);
   }, [artifacts, isDemo, pollArtifact]);
 
   async function handleClick(type: ArtifactType) {
@@ -192,7 +192,7 @@ export function ArtifactDock({
     });
 
     if (isDemo) {
-      window.setTimeout(() => {
+      setTimeout(() => {
         setArtifactStatus(type, {
           status: "ready",
           data: createDemoArtifactData(type),

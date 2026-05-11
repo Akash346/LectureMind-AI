@@ -122,11 +122,11 @@ function ArtifactLoadingMessage() {
   const [activeStep, setActiveStep] = React.useState(0);
 
   React.useEffect(() => {
-    const interval = window.setInterval(() => {
+    const interval = setInterval(() => {
       setActiveStep((current) => (current + 1) % loadingSteps.length);
     }, 950);
 
-    return () => window.clearInterval(interval);
+    return () => clearInterval(interval);
   }, []);
 
   return (

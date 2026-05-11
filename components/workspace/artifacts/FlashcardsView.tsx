@@ -49,6 +49,8 @@ export function FlashcardsView({ data }: { data: unknown }) {
   const backText = card?.answer ?? card?.back ?? "";
 
   React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "ArrowLeft") {
         setIndex((current) => Math.max(0, current - 1));
