@@ -125,10 +125,17 @@ export async function processWithWorker(
     }
 
     if (parsed.data.status === "FAILED") {
+      const details =
+        parsed.data.diagnostics?.details &&
+        typeof parsed.data.diagnostics.details === "object"
+          ? JSON.stringify(parsed.data.diagnostics.details).slice(0, 500)
+          : null;
       throw new VideoProcessingError({
         type: parsed.data.error.type,
         retryable: parsed.data.error.retryable,
-        technicalMessage: `Worker failed: ${parsed.data.error.type}`
+        technicalMessage: details
+          ? `Worker failed: ${parsed.data.error.type}; details=${details}`
+          : `Worker failed: ${parsed.data.error.type}`
       });
     }
 

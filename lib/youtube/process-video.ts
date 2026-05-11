@@ -351,7 +351,8 @@ export async function processNotebookVideo(
       engine: getIngestionEngine(),
       step: currentStep,
       durationMs: Date.now() - startedAt,
-      errorType: safeError.type
+      errorType: safeError.type,
+      technicalMessage: safeError.technicalMessage ?? null
     });
 
     await prisma.notebook.update({
