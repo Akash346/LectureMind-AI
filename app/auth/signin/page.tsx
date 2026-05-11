@@ -90,11 +90,11 @@ export default function SignInPage() {
                   <UserRound className="h-5 w-5" />
                 </span>
                 <span className="mt-5 block text-lg font-semibold">
-                  Continue as Demo User
+                  Continue as Demo Reviewer
                 </span>
                 <span className="mt-2 block text-sm leading-6 text-black/65 dark:text-white/65">
-                  No account needed. Your session is private and nothing is
-                  saved.
+                  Open a preloaded notebook with transcript evidence, artifacts,
+                  and chat ready.
                 </span>
               </Link>
             </div>

@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:retrieval": "tsx scripts/test-retrieval-local.ts",
     "test:chat": "tsx scripts/test-chat-contract.ts",
+    "demo:seed": "tsx scripts/seed-demo-notebook.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },

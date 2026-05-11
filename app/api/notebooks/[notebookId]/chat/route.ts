@@ -4,6 +4,8 @@ import { z } from "zod";
 import { answerNotebookChat } from "@/lib/chat/chat-service";
 import { checkChatRateLimit } from "@/lib/chat/rate-limit";
 import { getApiUser } from "@/lib/api-auth";
+import { answerDemoNotebookChat } from "@/lib/demo-chat";
+import { isDemoNotebookForUser } from "@/lib/demo-notebook";
 
 const paramsSchema = z.object({
   notebookId: z.string().min(1)
@@ -55,10 +57,29 @@ export async function POST(
     );
   }
 
+  const body = await readJsonBody(request);
+  const isDemoNotebook = await isDemoNotebookForUser({
+    userId: user.id,
+    notebookId: parsedParams.data.notebookId
+  });
+
+  if (isDemoNotebook) {
+    const result = await answerDemoNotebookChat({
+      userId: user.id,
+      body
+    });
+
+    if (!result.ok) {
+      return NextResponse.json(result.response, { status: result.status });
+    }
+
+    return NextResponse.json(result.response);
+  }
+
   const result = await answerNotebookChat({
     userId: user.id,
     notebookId: parsedParams.data.notebookId,
-    body: await readJsonBody(request)
+    body
   });
 
   if (!result.ok) {

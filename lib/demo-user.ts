@@ -4,10 +4,13 @@ import {
   demoCookieName,
   verifyDemoCookieValue
 } from "@/lib/demo-cookie";
+import {
+  DEMO_USER_EMAIL,
+  DEMO_USER_NAME
+} from "@/lib/demo-notebook-content";
 import { prisma } from "@/lib/prisma";
 
-export const DEMO_USER_EMAIL = "demo@lecturemind.local";
-export const DEMO_USER_NAME = "Demo User";
+export { DEMO_USER_EMAIL, DEMO_USER_NAME };
 
 export type DemoUser = {
   id: string;

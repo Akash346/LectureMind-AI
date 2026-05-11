@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import type { ChatMessage } from "@/components/workspace/ChatSurface";
 import { WorkspaceRouteClient } from "@/components/workspace/WorkspaceRouteClient";
 import { formatTimestamp } from "@/lib/citations";
+import { ensureDemoNotebook } from "@/lib/demo-notebook";
+import { DEMO_USER_EMAIL } from "@/lib/demo-user";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getYouTubeThumbnail } from "@/lib/utils/youtube";
@@ -17,6 +19,10 @@ export default async function ChatPage({
 
   if (!user?.id) {
     redirect("/auth/signin");
+  }
+
+  if (user.email === DEMO_USER_EMAIL) {
+    await ensureDemoNotebook({ userId: user.id });
   }
 
   const [activeNotebook, notebooks] = await Promise.all([

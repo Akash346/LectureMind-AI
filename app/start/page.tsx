@@ -67,7 +67,7 @@ export default function StartPage() {
                 <Link href="/auth/signin">Student</Link>
               </PrimaryButton>
               <SecondaryButton asChild className="w-full">
-                <Link href="/faculty/dashboard">Faculty</Link>
+                <Link href="/faculty">Faculty</Link>
               </SecondaryButton>
               <SecondaryButton asChild className="w-full">
                 <Link href="/start/administration">Administration</Link>
@@ -77,7 +77,7 @@ export default function StartPage() {
               href="/demo"
               className="mt-8 inline-flex text-sm font-medium text-black/70 transition hover:text-lm-indigo dark:text-white/70 dark:hover:text-lm-amber"
             >
-              Demo user
+              Continue as Demo Reviewer
             </Link>
           </GlassPanel>
         </motion.div>

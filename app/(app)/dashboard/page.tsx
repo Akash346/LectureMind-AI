@@ -5,6 +5,8 @@ import {
   type ChatCard
 } from "@/components/dashboard/DashboardClient";
 import { logAuthDebug } from "@/lib/auth-debug";
+import { ensureDemoNotebook } from "@/lib/demo-notebook";
+import { DEMO_USER_EMAIL } from "@/lib/demo-user";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getYouTubeThumbnail } from "@/lib/utils/youtube";
@@ -14,6 +16,10 @@ export default async function DashboardPage() {
 
   if (!user?.id) {
     redirect("/auth/signin");
+  }
+
+  if (user.email === DEMO_USER_EMAIL) {
+    await ensureDemoNotebook({ userId: user.id });
   }
 
   const notebooks = await prisma.notebook.findMany({

@@ -5,14 +5,16 @@ import {
   deleteNextAuthCookies,
   demoCookieName
 } from "@/lib/demo-cookie";
+import { ensureDemoNotebook } from "@/lib/demo-notebook";
 import { getOrCreateDemoUser } from "@/lib/demo-user";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  await getOrCreateDemoUser();
+  const demoUser = await getOrCreateDemoUser();
+  const demoNotebook = await ensureDemoNotebook({ userId: demoUser.id });
 
   const response = NextResponse.redirect(
-    new URL("/dashboard", url.origin)
+    new URL(`/chats/${demoNotebook.notebookId}?demo=1`, url.origin)
   );
   const value = await createDemoCookieValue();
 

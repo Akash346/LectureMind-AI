@@ -206,10 +206,10 @@ export default function LandingPage() {
           </DialogTitle>
           <p className="text-sm leading-7 text-black/70 dark:text-white/70">
             The recorded demo will be added before submission. For now, continue
-            as a demo user to test the full flow.
+            as a demo reviewer to test the full preloaded workspace.
           </p>
           <Button asChild>
-            <Link href="/demo">Continue as Demo User</Link>
+            <Link href="/demo">Continue as Demo Reviewer</Link>
           </Button>
         </DialogContent>
       </Dialog>
