@@ -59,6 +59,19 @@ def process_youtube(
     )
     info = extract_metadata(normalized_url)
     metadata = to_metadata(info, video_id, normalized_url)
+    availability = str(info.get("availability") or "").lower()
+
+    if availability == "private":
+        raise WorkerProcessingError("PRIVATE_VIDEO", "yt-dlp reported private video.")
+
+    if availability in {"subscriber_only", "premium_only"}:
+        raise WorkerProcessingError(
+            "MEMBERS_ONLY",
+            f"yt-dlp availability={availability}.",
+        )
+
+    if availability == "needs_auth":
+        raise WorkerProcessingError("LOGIN_REQUIRED", "yt-dlp reported needs_auth.")
 
     if metadata.isLive:
         raise WorkerProcessingError(

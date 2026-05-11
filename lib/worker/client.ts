@@ -127,8 +127,6 @@ export async function processWithWorker(
     if (parsed.data.status === "FAILED") {
       throw new VideoProcessingError({
         type: parsed.data.error.type,
-        userTitle: parsed.data.error.userTitle,
-        userMessage: parsed.data.error.userMessage,
         retryable: parsed.data.error.retryable,
         technicalMessage: `Worker failed: ${parsed.data.error.type}`
       });

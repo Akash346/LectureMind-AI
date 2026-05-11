@@ -5,8 +5,35 @@ from dataclasses import dataclass
 from .models import WorkerError, WorkerErrorType
 
 
+UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE = (
+    "LectureMind supports public educational YouTube videos. This video appears "
+    "to be private, restricted, age restricted, unavailable, or requires sign in. "
+    "Please try a public video with captions, or a public lecture video that can "
+    "be processed."
+)
+
+
 ERROR_COPY: dict[WorkerErrorType, tuple[str, str, bool]] = {
-    "PRIVATE_VIDEO": ("This video is private.", "Try a public lecture URL instead.", False),
+    "PRIVATE_VIDEO": (
+        "This video is private.",
+        UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE,
+        False,
+    ),
+    "MEMBERS_ONLY": (
+        "This video is restricted.",
+        UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE,
+        False,
+    ),
+    "LOGIN_REQUIRED": (
+        "This video requires sign-in.",
+        UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE,
+        False,
+    ),
+    "VIDEO_UNAVAILABLE": (
+        "This video is unavailable.",
+        UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE,
+        False,
+    ),
     "LIVE_STREAM_ACTIVE": (
         "Livestreams are not supported yet.",
         "Wait until the stream ends and YouTube finishes processing captions.",
@@ -14,12 +41,12 @@ ERROR_COPY: dict[WorkerErrorType, tuple[str, str, bool]] = {
     ),
     "AGE_RESTRICTED": (
         "This video requires sign-in.",
-        "We do not ask for your YouTube credentials. Please choose a public lecture video.",
+        UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE,
         False,
     ),
     "REGION_BLOCKED": (
         "This video is not available in this region.",
-        "Try another public lecture or a video with accessible captions.",
+        UNSUPPORTED_RESTRICTED_VIDEO_MESSAGE,
         False,
     ),
     "NO_CAPTIONS": (
@@ -105,8 +132,12 @@ def classify_ytdlp_error(error: Exception) -> WorkerProcessingError:
 
     if "private" in normalized:
         return WorkerProcessingError("PRIVATE_VIDEO", message)
-    if "age" in normalized or "sign in" in normalized or "login" in normalized:
+    if "members-only" in normalized or "members only" in normalized:
+        return WorkerProcessingError("MEMBERS_ONLY", message)
+    if "age" in normalized:
         return WorkerProcessingError("AGE_RESTRICTED", message)
+    if "sign in" in normalized or "login" in normalized:
+        return WorkerProcessingError("LOGIN_REQUIRED", message)
     if "country" in normalized or "region" in normalized or "blocked" in normalized:
         return WorkerProcessingError("REGION_BLOCKED", message)
     if "live event" in normalized or "live stream" in normalized or "premieres" in normalized:
@@ -115,8 +146,14 @@ def classify_ytdlp_error(error: Exception) -> WorkerProcessingError:
         return WorkerProcessingError("RATE_LIMITED", message)
     if "unsupported url" in normalized or "not a valid url" in normalized:
         return WorkerProcessingError("UNSUPPORTED_URL", message)
-    if "unavailable" in normalized or "does not exist" in normalized:
-        return WorkerProcessingError("TRANSCRIPT_UNAVAILABLE", message)
+    if (
+        "unavailable" in normalized
+        or "does not exist" in normalized
+        or "doesn't exist" in normalized
+        or "removed" in normalized
+        or "deleted" in normalized
+    ):
+        return WorkerProcessingError("VIDEO_UNAVAILABLE", message)
     if "timed out" in normalized or "network" in normalized or "connection" in normalized:
         return WorkerProcessingError("NETWORK_ERROR", message)
 

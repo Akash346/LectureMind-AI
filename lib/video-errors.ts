@@ -1,5 +1,8 @@
 export const videoErrorTypes = [
   "PRIVATE_VIDEO",
+  "MEMBERS_ONLY",
+  "LOGIN_REQUIRED",
+  "VIDEO_UNAVAILABLE",
   "LIVE_STREAM_ACTIVE",
   "AGE_RESTRICTED",
   "REGION_BLOCKED",
@@ -30,10 +33,31 @@ export const examplePublicLectureLinks = [
   "https://www.youtube.com/shorts/PUBLIC_LECTURE_ID"
 ] as const;
 
+export const unsupportedRestrictedVideoMessage =
+  "LectureMind supports public educational YouTube videos. This video appears to be private, restricted, age restricted, unavailable, or requires sign in. Please try a public video with captions, or a public lecture video that can be processed.";
+
 export const videoErrorCopy: Record<VideoErrorType, VideoErrorCopy> = {
   PRIVATE_VIDEO: {
     userTitle: "This video is private.",
-    userMessage: "Try a public lecture URL instead.",
+    userMessage: unsupportedRestrictedVideoMessage,
+    retryable: false,
+    examples: [...examplePublicLectureLinks]
+  },
+  MEMBERS_ONLY: {
+    userTitle: "This video is restricted.",
+    userMessage: unsupportedRestrictedVideoMessage,
+    retryable: false,
+    examples: [...examplePublicLectureLinks]
+  },
+  LOGIN_REQUIRED: {
+    userTitle: "This video requires sign-in.",
+    userMessage: unsupportedRestrictedVideoMessage,
+    retryable: false,
+    examples: [...examplePublicLectureLinks]
+  },
+  VIDEO_UNAVAILABLE: {
+    userTitle: "This video is unavailable.",
+    userMessage: unsupportedRestrictedVideoMessage,
     retryable: false,
     examples: [...examplePublicLectureLinks]
   },
@@ -45,13 +69,12 @@ export const videoErrorCopy: Record<VideoErrorType, VideoErrorCopy> = {
   },
   AGE_RESTRICTED: {
     userTitle: "This video requires sign-in.",
-    userMessage:
-      "We do not ask for your YouTube credentials. Please choose a public lecture video.",
+    userMessage: unsupportedRestrictedVideoMessage,
     retryable: false
   },
   REGION_BLOCKED: {
     userTitle: "This video is not available in this region.",
-    userMessage: "Try another public lecture or a video with accessible captions.",
+    userMessage: unsupportedRestrictedVideoMessage,
     retryable: false
   },
   NO_CAPTIONS: {

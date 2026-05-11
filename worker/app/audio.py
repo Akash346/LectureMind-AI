@@ -97,7 +97,14 @@ def download_audio(
             downloader.download([video_url])
     except Exception as error:  # yt-dlp raises a mix of custom exception types.
         classified = classify_ytdlp_error(error)
-        if classified.type in {"PRIVATE_VIDEO", "AGE_RESTRICTED", "REGION_BLOCKED"}:
+        if classified.type in {
+            "PRIVATE_VIDEO",
+            "MEMBERS_ONLY",
+            "LOGIN_REQUIRED",
+            "VIDEO_UNAVAILABLE",
+            "AGE_RESTRICTED",
+            "REGION_BLOCKED",
+        }:
             raise classified
         raise WorkerProcessingError("AUDIO_EXTRACTION_FAILED", str(error)) from error
 

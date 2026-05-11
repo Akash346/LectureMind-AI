@@ -110,8 +110,7 @@ export async function fetchYouTubeMetadata({
       return createFallbackMetadata({
         videoId,
         normalizedUrl,
-        errorType: error.type,
-        requiresAgeVerification: error.type === "AGE_RESTRICTED"
+        errorType: error.type
       });
     }
 
@@ -195,6 +194,17 @@ export function assertPlayable(playerResponse: PlayerResponse) {
     });
   }
 
+  if (
+    normalizedReason.includes("members-only") ||
+    normalizedReason.includes("members only") ||
+    normalizedReason.includes("join this channel")
+  ) {
+    throw new VideoProcessingError({
+      type: "MEMBERS_ONLY",
+      technicalMessage: `Playability ${status}: ${reason}`
+    });
+  }
+
   if (isExplicitAgeVerification(status, normalizedReason)) {
     throw new VideoProcessingError({
       type: "AGE_RESTRICTED",
@@ -202,9 +212,30 @@ export function assertPlayable(playerResponse: PlayerResponse) {
     });
   }
 
-  if (isGenericYouTubeInterruption(status, normalizedReason)) {
+  if (
+    normalizedReason.includes("video unavailable") ||
+    normalizedReason.includes("unavailable") ||
+    normalizedReason.includes("removed") ||
+    normalizedReason.includes("deleted") ||
+    normalizedReason.includes("does not exist") ||
+    normalizedReason.includes("doesn't exist")
+  ) {
+    throw new VideoProcessingError({
+      type: "VIDEO_UNAVAILABLE",
+      technicalMessage: `Playability ${status}: ${reason}`
+    });
+  }
+
+  if (isGenericYouTubeInterruption(normalizedReason)) {
     throw new VideoProcessingError({
       type: "NETWORK_ERROR",
+      technicalMessage: `Playability ${status}: ${reason}`
+    });
+  }
+
+  if (status === "LOGIN_REQUIRED" || normalizedReason.includes("sign in")) {
+    throw new VideoProcessingError({
+      type: "LOGIN_REQUIRED",
       technicalMessage: `Playability ${status}: ${reason}`
     });
   }
@@ -263,11 +294,7 @@ export function createFallbackMetadata({
 }
 
 function shouldUseFallbackMetadata(type: VideoErrorType) {
-  return (
-    type === "AGE_RESTRICTED" ||
-    type === "NETWORK_ERROR" ||
-    type === "RATE_LIMITED"
-  );
+  return type === "NETWORK_ERROR" || type === "RATE_LIMITED";
 }
 
 function isExplicitAgeVerification(status: string, normalizedReason: string) {
@@ -281,13 +308,8 @@ function isExplicitAgeVerification(status: string, normalizedReason: string) {
   );
 }
 
-function isGenericYouTubeInterruption(
-  status: string,
-  normalizedReason: string
-) {
+function isGenericYouTubeInterruption(normalizedReason: string) {
   return (
-    status === "LOGIN_REQUIRED" ||
-    normalizedReason.includes("sign in") ||
     normalizedReason.includes("not a bot") ||
     normalizedReason.includes("confirm you") ||
     normalizedReason.includes("consent")

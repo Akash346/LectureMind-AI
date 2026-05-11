@@ -7,6 +7,9 @@ from pydantic import BaseModel, Field
 
 WorkerErrorType = Literal[
     "PRIVATE_VIDEO",
+    "MEMBERS_ONLY",
+    "LOGIN_REQUIRED",
+    "VIDEO_UNAVAILABLE",
     "LIVE_STREAM_ACTIVE",
     "AGE_RESTRICTED",
     "REGION_BLOCKED",

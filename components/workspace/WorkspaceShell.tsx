@@ -5,6 +5,7 @@ import {
   Group as PanelGroup,
   Panel,
   Separator as PanelResizeHandle,
+  type LayoutStorage,
   useDefaultLayout
 } from "react-resizable-panels";
 
@@ -42,6 +43,17 @@ type WorkspaceShellProps = {
   } | null;
 };
 
+const serverLayoutStorage: LayoutStorage = {
+  getItem: () => null,
+  setItem: () => undefined
+};
+
+function getLayoutStorage(): LayoutStorage {
+  return typeof window === "undefined"
+    ? serverLayoutStorage
+    : window.localStorage;
+}
+
 export function WorkspaceShell({
   activeChat,
   chats,
@@ -58,7 +70,8 @@ export function WorkspaceShell({
   const indexStartedRef = React.useRef(false);
   const workspaceLayout = useDefaultLayout({
     id: "workspace-layout-v2",
-    panelIds: ["left", "center"]
+    panelIds: ["left", "center"],
+    storage: getLayoutStorage()
   });
 
   React.useEffect(() => {

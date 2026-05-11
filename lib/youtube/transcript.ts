@@ -142,13 +142,6 @@ async function fetchYoutubeTranscriptFallback(
       language: preferredLanguage
     }));
   } catch (error) {
-    if (
-      originalError instanceof VideoProcessingError &&
-      originalError.type === "AGE_RESTRICTED"
-    ) {
-      throw originalError;
-    }
-
     if (error instanceof YoutubeTranscriptTooManyRequestError) {
       throw new VideoProcessingError({
         type: "RATE_LIMITED",
@@ -193,8 +186,7 @@ function canTryTranscriptFallback(error: VideoProcessingError) {
     error.type === "NO_CAPTIONS" ||
     error.type === "TRANSCRIPT_UNAVAILABLE" ||
     error.type === "NETWORK_ERROR" ||
-    error.type === "RATE_LIMITED" ||
-    error.type === "AGE_RESTRICTED"
+    error.type === "RATE_LIMITED"
   );
 }
 
