@@ -57,10 +57,7 @@ export async function fetchTranscriptSegments({
   try {
     return await fetchDirectYouTubeTranscript(videoId, preferredLanguage);
   } catch (error) {
-    if (
-      error instanceof VideoProcessingError &&
-      !["NO_CAPTIONS", "TRANSCRIPT_UNAVAILABLE"].includes(error.type)
-    ) {
+    if (error instanceof VideoProcessingError && !canTryTranscriptFallback(error)) {
       throw error;
     }
 
@@ -145,6 +142,13 @@ async function fetchYoutubeTranscriptFallback(
       language: preferredLanguage
     }));
   } catch (error) {
+    if (
+      originalError instanceof VideoProcessingError &&
+      originalError.type === "AGE_RESTRICTED"
+    ) {
+      throw originalError;
+    }
+
     if (error instanceof YoutubeTranscriptTooManyRequestError) {
       throw new VideoProcessingError({
         type: "RATE_LIMITED",
@@ -182,6 +186,16 @@ async function fetchYoutubeTranscriptFallback(
       }`
     });
   }
+}
+
+function canTryTranscriptFallback(error: VideoProcessingError) {
+  return (
+    error.type === "NO_CAPTIONS" ||
+    error.type === "TRANSCRIPT_UNAVAILABLE" ||
+    error.type === "NETWORK_ERROR" ||
+    error.type === "RATE_LIMITED" ||
+    error.type === "AGE_RESTRICTED"
+  );
 }
 
 function getCaptionTracks(playerResponse: YouTubePlayerResponse) {

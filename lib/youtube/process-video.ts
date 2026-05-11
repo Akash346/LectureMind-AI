@@ -83,6 +83,11 @@ type IngestionSuccess = {
   diagnostics?: Prisma.InputJsonValue;
 };
 
+type IngestionRuntime = {
+  startedAt: number;
+  setStep: (step: string) => string;
+};
+
 export type ProcessNotebookVideoOptions = {
   force?: boolean;
 };
@@ -161,6 +166,12 @@ export async function processNotebookVideo(
   }
 
   let job: Job | null = null;
+  let parsedVideoId: string | null = notebook.videoId;
+  let currentStep = "Validating YouTube URL";
+  const setCurrentStep = (step: string) => {
+    currentStep = step;
+    return step;
+  };
 
   try {
     await prisma.notebook.update({
@@ -197,17 +208,28 @@ export async function processNotebookVideo(
       userId,
       jobId: job.id,
       engine: getIngestionEngine(),
-      step: "Validating YouTube URL"
+      step: currentStep,
+      durationMs: Date.now() - startedAt
     });
 
     const parsedUrl = parseYouTubeUrl(notebook.sourceUrl);
+    parsedVideoId = parsedUrl.videoId;
+    logIngestionEvent("youtube_url_parsed", {
+      notebookId,
+      userId,
+      videoId: parsedUrl.videoId,
+      jobId: job.id,
+      engine: getIngestionEngine(),
+      step: currentStep,
+      durationMs: Date.now() - startedAt
+    });
     const maxDurationSeconds = getMaxVideoDurationSeconds();
 
     await updateNotebookAndJob({
       notebookId,
       jobId: job.id,
       progress: 10,
-      currentStep: "Reading video details",
+      currentStep: setCurrentStep("Reading video details"),
       notebookData: {
         videoId: parsedUrl.videoId,
         sourceUrl: parsedUrl.normalizedUrl
@@ -218,12 +240,16 @@ export async function processNotebookVideo(
       notebook,
       job,
       parsedUrl,
-      maxDurationSeconds
+      maxDurationSeconds,
+      runtime: {
+        startedAt,
+        setStep: setCurrentStep
+      }
     });
 
     await updateJob(job.id, {
       progress: 90,
-      currentStep: "Saving grounded evidence",
+      currentStep: setCurrentStep("Saving grounded evidence"),
       metadata: buildJobMetadata(result)
     });
 
@@ -312,13 +338,13 @@ export async function processNotebookVideo(
   } catch (error) {
     const safeError = normalizeVideoError(error);
 
-    logIngestionEvent("failed", {
+    logIngestionEvent("youtube_process_failed", {
       notebookId,
       userId,
-      videoId: notebook.videoId,
+      videoId: parsedVideoId,
       jobId: job?.id,
       engine: getIngestionEngine(),
-      step: job?.currentStep ?? "Unknown",
+      step: currentStep,
       durationMs: Date.now() - startedAt,
       errorType: safeError.type
     });
@@ -365,12 +391,14 @@ async function runIngestionStrategy({
   notebook,
   job,
   parsedUrl,
-  maxDurationSeconds
+  maxDurationSeconds,
+  runtime
 }: {
   notebook: NotebookForProcessing;
   job: Job;
   parsedUrl: ReturnType<typeof parseYouTubeUrl>;
   maxDurationSeconds: number;
+  runtime: IngestionRuntime;
 }): Promise<IngestionSuccess> {
   const engine = getIngestionEngine();
 
@@ -379,7 +407,8 @@ async function runIngestionStrategy({
       notebook,
       job,
       parsedUrl,
-      maxDurationSeconds
+      maxDurationSeconds,
+      runtime
     });
   }
 
@@ -389,7 +418,8 @@ async function runIngestionStrategy({
       job,
       parsedUrl,
       maxDurationSeconds,
-      fallbackUsed: false
+      fallbackUsed: false,
+      runtime
     });
   }
 
@@ -398,7 +428,8 @@ async function runIngestionStrategy({
       notebook,
       job,
       parsedUrl,
-      maxDurationSeconds
+      maxDurationSeconds,
+      runtime
     });
   } catch (error) {
     const safeError = normalizeVideoError(error);
@@ -409,7 +440,7 @@ async function runIngestionStrategy({
 
     await updateJob(job.id, {
       progress: 45,
-      currentStep: "Caption path unavailable, preparing fallback",
+      currentStep: runtime.setStep("Caption path unavailable, preparing fallback"),
       errorType: null,
       errorMessage: null,
       metadata: {
@@ -425,7 +456,8 @@ async function runIngestionStrategy({
       job,
       parsedUrl,
       maxDurationSeconds,
-      fallbackUsed: true
+      fallbackUsed: true,
+      runtime
     });
   }
 }
@@ -434,17 +466,63 @@ async function runNodeCaptionIngestion({
   notebook,
   job,
   parsedUrl,
-  maxDurationSeconds
+  maxDurationSeconds,
+  runtime
 }: {
   notebook: NotebookForProcessing;
   job: Job;
   parsedUrl: ReturnType<typeof parseYouTubeUrl>;
   maxDurationSeconds: number;
+  runtime: IngestionRuntime;
 }): Promise<IngestionSuccess> {
-  const metadata = await fetchYouTubeMetadata({
+  const engine = getIngestionEngine();
+  const metadataStep = runtime.setStep("Reading video details");
+  const metadataStartedAt = Date.now();
+
+  logIngestionEvent("youtube_metadata_started", {
+    notebookId: notebook.id,
+    userId: notebook.userId,
     videoId: parsedUrl.videoId,
-    normalizedUrl: parsedUrl.normalizedUrl
+    jobId: job.id,
+    engine,
+    step: metadataStep,
+    durationMs: Date.now() - runtime.startedAt
   });
+
+  let metadata: YouTubeMetadata;
+
+  try {
+    metadata = await fetchYouTubeMetadata({
+      videoId: parsedUrl.videoId,
+      normalizedUrl: parsedUrl.normalizedUrl
+    });
+  } catch (error) {
+    const safeError = normalizeVideoError(error);
+    logIngestionEvent("youtube_metadata_failed", {
+      notebookId: notebook.id,
+      userId: notebook.userId,
+      videoId: parsedUrl.videoId,
+      jobId: job.id,
+      engine,
+      step: metadataStep,
+      errorType: safeError.type,
+      durationMs: Date.now() - metadataStartedAt
+    });
+    throw error;
+  }
+
+  if (metadata.metadataSource === "fallback") {
+    logIngestionEvent("youtube_metadata_fallback_used", {
+      notebookId: notebook.id,
+      userId: notebook.userId,
+      videoId: parsedUrl.videoId,
+      jobId: job.id,
+      engine,
+      step: metadataStep,
+      errorType: metadata.metadataErrorType ?? null,
+      durationMs: Date.now() - metadataStartedAt
+    });
+  }
 
   if (metadata.isLive) {
     throw new VideoProcessingError({
@@ -467,7 +545,7 @@ async function runNodeCaptionIngestion({
     notebookId: notebook.id,
     jobId: job.id,
     progress: 20,
-    currentStep: "Checking existing captions",
+    currentStep: runtime.setStep("Checking existing captions"),
     notebookData: {
       title: metadata.title,
       videoTitle: metadata.title,
@@ -476,14 +554,64 @@ async function runNodeCaptionIngestion({
     }
   });
 
-  const transcript = await fetchTranscriptSegments({
+  const captionStep = runtime.setStep("Checking existing captions");
+  const captionStartedAt = Date.now();
+
+  logIngestionEvent("youtube_caption_started", {
+    notebookId: notebook.id,
+    userId: notebook.userId,
     videoId: parsedUrl.videoId,
-    preferredLanguage: DEFAULT_TRANSCRIPT_LANGUAGE
+    jobId: job.id,
+    engine,
+    step: captionStep,
+    durationMs: Date.now() - runtime.startedAt
+  });
+
+  let transcript: TranscriptSegment[];
+
+  try {
+    transcript = await fetchTranscriptSegments({
+      videoId: parsedUrl.videoId,
+      preferredLanguage: DEFAULT_TRANSCRIPT_LANGUAGE
+    });
+  } catch (error) {
+    const safeError =
+      metadata.requiresAgeVerification === true
+        ? new VideoProcessingError({
+            type: "AGE_RESTRICTED",
+            technicalMessage:
+              "Metadata indicated age verification and captions could not be read."
+          })
+        : normalizeVideoError(error);
+
+    logIngestionEvent("youtube_caption_failed", {
+      notebookId: notebook.id,
+      userId: notebook.userId,
+      videoId: parsedUrl.videoId,
+      jobId: job.id,
+      engine,
+      step: captionStep,
+      errorType: safeError.type,
+      durationMs: Date.now() - captionStartedAt
+    });
+
+    throw safeError;
+  }
+
+  logIngestionEvent("youtube_caption_success", {
+    notebookId: notebook.id,
+    userId: notebook.userId,
+    videoId: parsedUrl.videoId,
+    jobId: job.id,
+    engine,
+    step: captionStep,
+    durationMs: Date.now() - captionStartedAt,
+    segmentCount: transcript.length
   });
 
   await updateJob(job.id, {
     progress: 35,
-    currentStep: "Building caption transcript",
+    currentStep: runtime.setStep("Building caption transcript"),
     metadata: {
       engine: "node",
       engineLabel: "YouTube captions"
@@ -511,13 +639,15 @@ async function runWorkerIngestion({
   job,
   parsedUrl,
   maxDurationSeconds,
-  fallbackUsed
+  fallbackUsed,
+  runtime
 }: {
   notebook: NotebookForProcessing;
   job: Job;
   parsedUrl: ReturnType<typeof parseYouTubeUrl>;
   maxDurationSeconds: number;
   fallbackUsed: boolean;
+  runtime: IngestionRuntime;
 }): Promise<IngestionSuccess> {
   if (!isWorkerEnabled()) {
     throw new VideoProcessingError({
@@ -528,7 +658,7 @@ async function runWorkerIngestion({
 
   await updateJob(job.id, {
     progress: 55,
-    currentStep: "Contacting processing worker",
+    currentStep: runtime.setStep("Contacting processing worker"),
     metadata: {
       engine: fallbackUsed ? "worker-fallback" : "worker",
       engineLabel: "Advanced worker",
@@ -548,7 +678,7 @@ async function runWorkerIngestion({
   if (workerResult.diagnostics.asrUsed) {
     await updateJob(job.id, {
       progress: 80,
-      currentStep: "Transcribing audio",
+      currentStep: runtime.setStep("Transcribing audio"),
       metadata: {
         engine: fallbackUsed ? "worker-fallback" : "worker",
         engineLabel: "Azure Speech fallback",

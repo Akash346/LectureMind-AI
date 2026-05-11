@@ -1,4 +1,7 @@
-import { VideoProcessingError } from "@/lib/video-errors";
+import {
+  VideoProcessingError,
+  type VideoErrorType
+} from "@/lib/video-errors";
 
 const WATCH_BASE_URL = "https://www.youtube.com/watch";
 const REQUEST_HEADERS = {
@@ -15,6 +18,9 @@ export type YouTubeMetadata = {
   durationSec?: number;
   isLive?: boolean;
   normalizedUrl: string;
+  metadataSource?: "player" | "fallback";
+  metadataErrorType?: VideoErrorType;
+  requiresAgeVerification?: boolean;
 };
 
 type Thumbnail = {
@@ -87,16 +93,26 @@ export async function fetchYouTubeMetadata({
       title:
         details?.title ??
         microformat?.title?.simpleText ??
-        `YouTube lecture ${videoId}`,
+        "YouTube lecture",
       author: details?.author ?? microformat?.ownerChannelName,
       thumbnailUrl,
       ...(durationSec === undefined ? {} : { durationSec }),
       isLive,
-      normalizedUrl
+      normalizedUrl,
+      metadataSource: "player"
     };
   } catch (error) {
     if (error instanceof VideoProcessingError) {
-      throw error;
+      if (!shouldUseFallbackMetadata(error.type)) {
+        throw error;
+      }
+
+      return createFallbackMetadata({
+        videoId,
+        normalizedUrl,
+        errorType: error.type,
+        requiresAgeVerification: error.type === "AGE_RESTRICTED"
+      });
     }
 
     console.warn("[youtube:metadata] Falling back to basic metadata", {
@@ -104,12 +120,11 @@ export async function fetchYouTubeMetadata({
       error: error instanceof Error ? error.message : String(error)
     });
 
-    return {
+    return createFallbackMetadata({
       videoId,
-      title: `YouTube lecture ${videoId}`,
-      thumbnailUrl: getFallbackThumbnailUrl(videoId),
-      normalizedUrl
-    };
+      normalizedUrl,
+      errorType: "NETWORK_ERROR"
+    });
   }
 }
 
@@ -180,13 +195,16 @@ export function assertPlayable(playerResponse: PlayerResponse) {
     });
   }
 
-  if (
-    normalizedReason.includes("sign in") ||
-    normalizedReason.includes("age") ||
-    status === "LOGIN_REQUIRED"
-  ) {
+  if (isExplicitAgeVerification(status, normalizedReason)) {
     throw new VideoProcessingError({
       type: "AGE_RESTRICTED",
+      technicalMessage: `Playability ${status}: ${reason}`
+    });
+  }
+
+  if (isGenericYouTubeInterruption(status, normalizedReason)) {
+    throw new VideoProcessingError({
+      type: "NETWORK_ERROR",
       technicalMessage: `Playability ${status}: ${reason}`
     });
   }
@@ -220,6 +238,60 @@ export function assertPlayable(playerResponse: PlayerResponse) {
 
 export function getFallbackThumbnailUrl(videoId: string) {
   return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+}
+
+export function createFallbackMetadata({
+  videoId,
+  normalizedUrl,
+  errorType,
+  requiresAgeVerification = false
+}: {
+  videoId: string;
+  normalizedUrl: string;
+  errorType?: VideoErrorType;
+  requiresAgeVerification?: boolean;
+}): YouTubeMetadata {
+  return {
+    videoId,
+    title: "YouTube lecture",
+    thumbnailUrl: getFallbackThumbnailUrl(videoId),
+    normalizedUrl,
+    metadataSource: "fallback",
+    ...(errorType ? { metadataErrorType: errorType } : {}),
+    ...(requiresAgeVerification ? { requiresAgeVerification } : {})
+  };
+}
+
+function shouldUseFallbackMetadata(type: VideoErrorType) {
+  return (
+    type === "AGE_RESTRICTED" ||
+    type === "NETWORK_ERROR" ||
+    type === "RATE_LIMITED"
+  );
+}
+
+function isExplicitAgeVerification(status: string, normalizedReason: string) {
+  return (
+    normalizedReason.includes("confirm your age") ||
+    normalizedReason.includes("age verification") ||
+    normalizedReason.includes("age-restricted") ||
+    normalizedReason.includes("age restricted") ||
+    normalizedReason.includes("may be inappropriate for some users") ||
+    (status === "AGE_CHECK_REQUIRED" && normalizedReason.includes("age"))
+  );
+}
+
+function isGenericYouTubeInterruption(
+  status: string,
+  normalizedReason: string
+) {
+  return (
+    status === "LOGIN_REQUIRED" ||
+    normalizedReason.includes("sign in") ||
+    normalizedReason.includes("not a bot") ||
+    normalizedReason.includes("confirm you") ||
+    normalizedReason.includes("consent")
+  );
 }
 
 function parseDuration(value?: string) {
