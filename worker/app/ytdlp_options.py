@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import shutil
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -61,7 +63,7 @@ def build_audio_options(
 
 
 def with_cookiefile(options: dict[str, Any]) -> dict[str, Any]:
-    cookiefile = get_ytdlp_cookiefile()
+    cookiefile = get_runtime_cookiefile()
     if cookiefile:
         return {
             **options,
@@ -69,3 +71,22 @@ def with_cookiefile(options: dict[str, Any]) -> dict[str, Any]:
         }
 
     return options
+
+
+def get_runtime_cookiefile() -> str | None:
+    cookiefile = get_ytdlp_cookiefile()
+    if not cookiefile:
+        return None
+
+    source_path = Path(cookiefile)
+    runtime_dir = Path(tempfile.gettempdir()) / "lecturemind-worker"
+    runtime_path = runtime_dir / "youtube-cookies.txt"
+
+    try:
+        runtime_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_path, runtime_path)
+        return str(runtime_path)
+    except Exception:
+        # If we cannot copy into a writable location, skip cookiefile usage
+        # so yt-dlp can still run and report a typed gating error.
+        return None
