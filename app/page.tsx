@@ -2,12 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Play } from "lucide-react";
+import {
+  ArrowRight,
+  FileCheck2,
+  Github,
+  Scale,
+  ScanText
+} from "lucide-react";
 import { motion, useInView } from "motion/react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { LMLogo, LMWordmark } from "@/components/ui/brand";
 
 const spring = { type: "spring" as const, stiffness: 300, damping: 30 };
@@ -28,10 +33,26 @@ const proofCells = [
 ];
 
 const artifacts = ["Outline", "Summary", "Flashcards", "Quiz", "Mind Map", "Report"];
+const GITHUB_REPO_URL = "https://github.com/Akash346/LectureMind-AI";
+const facultyFeatures = [
+  {
+    title: "Bias Report",
+    body: "Highlights representation and fairness issues with evidence-grounded findings.",
+    Icon: Scale
+  },
+  {
+    title: "Improvement Report",
+    body: "Generates prioritized teaching improvements with timestamp-linked rationale.",
+    Icon: FileCheck2
+  },
+  {
+    title: "Accessibility Report (Advanced OCR)",
+    body: "Uses advanced OCR in the backend to analyze uploaded files and produce accessibility-ready outputs.",
+    Icon: ScanText
+  }
+];
 
 export default function LandingPage() {
-  const [demoOpen, setDemoOpen] = React.useState(false);
-
   return (
     <main className="min-h-screen bg-lm-paper text-lm-ink dark:bg-lm-ink dark:text-lm-paper">
       <header className="sticky top-0 z-50 h-16 border-b border-black/10 bg-lm-paper/80 backdrop-blur-2xl dark:border-white/10 dark:bg-lm-ink/80">
@@ -76,28 +97,36 @@ export default function LandingPage() {
           </HeroItem>
           <HeroItem>
             <p className="mx-auto max-w-2xl text-lg leading-8 text-black/70 dark:text-white/70">
-              LectureMind turns any YouTube lecture into a grounded study
+              LectureMind turns YouTube lectures into a grounded study
               environment. Every claim cites the exact moment it came from in
-              the video. No hallucination, no busywork.
+              the video.
             </p>
           </HeroItem>
           <HeroItem>
-            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="flex flex-col items-center justify-center gap-3">
               <Button asChild size="lg">
                 <Link href="/start">
                   Get started
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={() => setDemoOpen(true)}
-              >
-                <Play className="h-4 w-4" />
-                Watch a 60 second demo
-              </Button>
+              <div className="mx-auto max-w-3xl rounded-lg border border-amber-300/70 bg-amber-50 px-4 py-3 text-left text-sm text-amber-950 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-100">
+                <p className="font-medium">
+                  Cloud deployment note
+                </p>
+                <p className="mt-1 opacity-90">
+                  Some YouTube URLs are blocked in cloud environments due to sign-in verification (`LOGIN_REQUIRED`) from YouTube. For full reliability, clone the GitHub repo and run locally to explore artifact generation and advanced OCR-powered accessibility workflows through the Faculty path.
+                </p>
+                <a
+                  href={GITHUB_REPO_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-2 font-medium text-lm-ink hover:text-lm-indigo dark:text-lm-paper dark:hover:text-lm-amber"
+                >
+                  <Github className="h-4 w-4" />
+                  Open GitHub Repository
+                </a>
+              </div>
             </div>
           </HeroItem>
         </motion.div>
@@ -148,6 +177,38 @@ export default function LandingPage() {
       </FadeSection>
 
       <FadeSection className="mx-auto max-w-6xl px-6 py-20">
+        <p className="text-sm font-medium tracking-[0.18em] text-lm-indigo dark:text-lm-amber">
+          Faculty capabilities
+        </p>
+        <h2 className="mt-4 font-space-grotesk text-4xl font-semibold">
+          Faculty review studio for quality, bias, and accessibility.
+        </h2>
+        <p className="mt-5 max-w-4xl text-lg leading-8 text-black/70 dark:text-white/70">
+          Beyond student study artifacts, LectureMind includes Faculty workflows
+          for quality review. Faculty can generate a Bias Report, an Improvement
+          Report, and an Accessibility Report powered by advanced OCR in the backend.
+        </p>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {facultyFeatures.map((feature) => (
+            <article
+              key={feature.title}
+              className="rounded-lg border border-black/10 bg-black/[0.03] p-6 dark:border-white/10 dark:bg-white/[0.06]"
+            >
+              <div className="flex items-center gap-2">
+                <feature.Icon className="h-5 w-5 text-lm-indigo dark:text-lm-amber" />
+                <h3 className="font-space-grotesk text-xl font-semibold">
+                  {feature.title}
+                </h3>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-black/70 dark:text-white/70">
+                {feature.body}
+              </p>
+            </article>
+          ))}
+        </div>
+      </FadeSection>
+
+      <FadeSection className="mx-auto max-w-6xl px-6 py-20">
         <h2 className="font-space-grotesk text-4xl font-semibold">The proof</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {proofCells.map((cell) => (
@@ -189,30 +250,16 @@ export default function LandingPage() {
             <p>2026 LectureMind</p>
           </div>
           <Link
-            href="https://github.com/Akash346/LectureMind-AI"
+            href={GITHUB_REPO_URL}
             target="_blank"
             rel="noreferrer"
-            className="font-medium text-lm-ink hover:text-lm-indigo dark:text-lm-paper dark:hover:text-lm-amber"
+            className="inline-flex items-center gap-2 font-medium text-lm-ink hover:text-lm-indigo dark:text-lm-paper dark:hover:text-lm-amber"
           >
+            <Github className="h-4 w-4" />
             GitHub
           </Link>
         </div>
       </footer>
-
-      <Dialog open={demoOpen} onOpenChange={setDemoOpen}>
-        <DialogContent className="border-black/10 bg-lm-paper text-lm-ink dark:border-white/10 dark:bg-lm-ink dark:text-lm-paper">
-          <DialogTitle className="font-space-grotesk text-2xl">
-            Demo preview
-          </DialogTitle>
-          <p className="text-sm leading-7 text-black/70 dark:text-white/70">
-            The recorded demo will be added before submission. For now, continue
-            as a demo reviewer to test the full preloaded workspace.
-          </p>
-          <Button asChild>
-            <Link href="/demo">Continue as Demo Reviewer</Link>
-          </Button>
-        </DialogContent>
-      </Dialog>
     </main>
   );
 }
