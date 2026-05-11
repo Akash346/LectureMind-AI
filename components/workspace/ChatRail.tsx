@@ -34,13 +34,13 @@ export function ChatRail({
             Your chats
           </h2>
         ) : null}
-        <button
-          aria-label="New Chat"
+        <Link
+          aria-label="New chat"
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-lm-paper text-lm-ink transition hover:border-lm-indigo dark:border-white/10 dark:bg-lm-ink dark:text-lm-paper"
-          type="button"
+          href="/dashboard?new=1"
         >
           <Plus className="h-4 w-4" />
-        </button>
+        </Link>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         <div className="space-y-2">

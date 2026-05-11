@@ -44,12 +44,27 @@ export async function GET(
     return NextResponse.json({ error: "Notebook not found." }, { status: 404 });
   }
 
+  const artifact = artifacts.find(
+    (item) => item.type === parsedParams.data.artifactType
+  );
+  const variant = getSummaryVariant(parsedParams.data.artifactType);
+
+  if (variant) {
+    console.info(
+      "[ai:summary]",
+      JSON.stringify({
+        event: "summary_variant_fetch",
+        notebookId: parsedParams.data.notebookId,
+        variant,
+        found: artifact?.status === "READY"
+      })
+    );
+  }
+
   return NextResponse.json({
     notebookId: parsedParams.data.notebookId,
     language,
-    artifact: artifacts.find(
-      (artifact) => artifact.type === parsedParams.data.artifactType
-    )
+    artifact
   });
 }
 
@@ -71,4 +86,16 @@ async function resolveLanguage({
   });
 
   return normalizeArtifactLanguage(notebook?.language);
+}
+
+function getSummaryVariant(artifactType: string) {
+  if (artifactType === "SUMMARY_SHORT") {
+    return "short";
+  }
+
+  if (artifactType === "SUMMARY_MEDIUM") {
+    return "medium";
+  }
+
+  return null;
 }

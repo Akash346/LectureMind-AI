@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, X } from "lucide-react";
@@ -63,10 +64,7 @@ export function ArtifactPanel({ chatId }: ArtifactPanelProps) {
                   className="h-full"
                 >
                   {artifact?.status === "generating" ? (
-                    <ArtifactStatusMessage
-                      icon={<Loader2 className="h-4 w-4 animate-spin" />}
-                      message="Generating from lecture evidence."
-                    />
+                    <ArtifactLoadingMessage />
                   ) : null}
                   {artifact?.status === "error" ? (
                     <ArtifactStatusMessage
@@ -110,6 +108,57 @@ export function ArtifactPanel({ chatId }: ArtifactPanelProps) {
         </motion.aside>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+const loadingSteps = [
+  "Generating evidence",
+  "Building artifact",
+  "Checking citations",
+  "Saving result"
+];
+
+function ArtifactLoadingMessage() {
+  const [activeStep, setActiveStep] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveStep((current) => (current + 1) % loadingSteps.length);
+    }, 950);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex h-full items-center justify-center p-6 text-center">
+      <div className="w-full max-w-xs">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-lm-indigo/10 text-lm-indigo">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+        <div className="mt-5 space-y-2">
+          {loadingSteps.map((step, index) => (
+            <motion.div
+              key={step}
+              animate={{
+                opacity: index === activeStep ? 1 : 0.45,
+                y: index === activeStep ? 0 : 2
+              }}
+              className="flex items-center justify-center gap-2 text-sm text-muted-foreground"
+              transition={{ duration: 0.2 }}
+            >
+              <span
+                className={
+                  index === activeStep
+                    ? "h-2 w-2 rounded-full bg-lm-indigo"
+                    : "h-2 w-2 rounded-full bg-muted-foreground/30"
+                }
+              />
+              <span>{step}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 

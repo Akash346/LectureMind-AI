@@ -8,7 +8,7 @@ import { runSummaryAgent } from "@/lib/ai/artifacts/summary-agent";
 import type { GenerateJsonResult } from "@/lib/ai/azure-openai";
 import { isAzureOpenAIConfigured } from "@/lib/ai/azure-openai";
 import {
-  compileEvidenceForArtifact,
+  compileEvidencePacketFromChunks,
   type EvidencePacket
 } from "@/lib/ai/evidence-compiler";
 import {
@@ -27,6 +27,7 @@ import {
 } from "@/lib/ai/schemas";
 import { verifyAndRepairArtifact } from "@/lib/ai/verifier";
 import { prisma } from "@/lib/prisma";
+import { retrieveLectureContext } from "@/lib/retrieval/lecture-retriever";
 
 const MIN_EVIDENCE_SEGMENTS = 2;
 const MIN_EVIDENCE_CHARACTERS = 120;
@@ -113,6 +114,11 @@ export async function generateArtifact({
     },
     select: {
       id: true,
+      title: true,
+      videoId: true,
+      videoTitle: true,
+      durationSec: true,
+      sourceUrl: true,
       status: true,
       _count: {
         select: {
@@ -125,19 +131,6 @@ export async function generateArtifact({
   if (!notebook) {
     return null;
   }
-
-  logArtifactEvidenceLookup({
-    notebookId,
-    artifactType: parsedType.data,
-    language: normalizedLanguage,
-    segmentCount: notebook._count.evidenceSegments,
-    fallbackReason:
-      notebook.status !== "READY"
-        ? "notebook_not_ready"
-        : notebook._count.evidenceSegments < MIN_EVIDENCE_SEGMENTS
-          ? "too_few_segments"
-          : null
-  });
 
   await prisma.artifact.upsert({
     where: {
@@ -185,14 +178,59 @@ export async function generateArtifact({
       throw new AIGenerationError({ type: "AI_NOT_CONFIGURED" });
     }
 
-    const packet = await compileEvidenceForArtifact(
-      notebookId,
+    const retrieval = await retrieveLectureContext({
       userId,
-      parsedType.data,
-      normalizedLanguage
-    );
+      notebookId,
+      query: buildArtifactRetrievalQuery(parsedType.data),
+      topK: getArtifactRetrievalTopK(parsedType.data)
+    });
+
+    if (!retrieval.ok) {
+      logArtifactRetrieval({
+        notebookId,
+        artifactType: parsedType.data,
+        language: normalizedLanguage,
+        source: "local_lexical_fallback",
+        resultCount: 0,
+        indexedSegmentCount: 0,
+        fallbackReason: retrieval.error.code
+      });
+      throw new AIGenerationError({ type: "INSUFFICIENT_EVIDENCE" });
+    }
+
+    logArtifactRetrieval({
+      notebookId,
+      artifactType: parsedType.data,
+      language: normalizedLanguage,
+      source: toRetrievalSource(retrieval.retrievalMode),
+      resultCount: retrieval.chunks.length,
+      indexedSegmentCount: retrieval.debug.indexedSegmentCount,
+      fallbackReason: retrieval.fallbackReason
+    });
+
+    const packet = compileEvidencePacketFromChunks({
+      notebook: {
+        id: notebook.id,
+        title: notebook.title,
+        videoId: notebook.videoId,
+        videoTitle: notebook.videoTitle,
+        durationSec: notebook.durationSec,
+        sourceUrl: notebook.sourceUrl,
+        evidenceSourceType: retrieval.chunks[0]?.source ?? null
+      },
+      chunks: retrieval.chunks,
+      artifactType: parsedType.data,
+      preferredLanguage: normalizedLanguage
+    });
 
     assertEvidenceIsUsable(packet);
+
+    logArtifactGenerationStarted({
+      notebookId,
+      artifactType: parsedType.data,
+      language: normalizedLanguage,
+      evidenceCount: packet.evidenceSegments.length
+    });
 
     const generated = await runAgentForArtifact(parsedType.data, packet);
     const verified = await verifyAndRepairArtifact({
@@ -231,11 +269,20 @@ export async function generateArtifact({
           verifierResult: verified.verifierResult,
           repaired: verified.repaired,
           citationFallbackUsed: verified.citationFallbackUsed,
-          transcriptStats: packet.transcriptStats
+          transcriptStats: packet.transcriptStats,
+          retrievalSource: toRetrievalSource(retrieval.retrievalMode),
+          retrievalMode: retrieval.retrievalMode,
+          retrievalFallbackReason: retrieval.fallbackReason,
+          indexedSegmentCount: retrieval.debug.indexedSegmentCount
         } satisfies Prisma.InputJsonValue
       }
     });
 
+    logArtifactGenerationComplete({
+      notebookId,
+      artifactType: parsedType.data,
+      language: normalizedLanguage
+    });
     console.info(
       "[ai:artifact]",
       JSON.stringify({
@@ -354,33 +401,108 @@ export async function generateAllArtifacts({
   return results;
 }
 
-function logArtifactEvidenceLookup({
+function logArtifactRetrieval({
   notebookId,
   artifactType,
   language,
-  segmentCount,
+  source,
+  resultCount,
+  indexedSegmentCount,
   fallbackReason
 }: {
   notebookId: string;
   artifactType: ArtifactType;
   language: LanguageCode;
-  segmentCount: number;
+  source: "hybrid_search" | "local_lexical_fallback";
+  resultCount: number;
+  indexedSegmentCount: number;
   fallbackReason: string | null;
 }) {
   console.info(
     "[ai:artifact]",
     JSON.stringify({
-      event: "artifact_evidence_lookup",
+      event: "artifact_retrieval",
       notebookId,
-      chatId: notebookId,
       artifactType,
       languageCode: language,
-      segmentCount,
-      evidenceCount: segmentCount,
-      retrievalSource: "prisma_evidence_segments",
+      source,
+      resultCount,
+      indexedSegmentCount,
       fallbackReason
     })
   );
+}
+
+function logArtifactGenerationStarted({
+  notebookId,
+  artifactType,
+  language,
+  evidenceCount
+}: {
+  notebookId: string;
+  artifactType: ArtifactType;
+  language: LanguageCode;
+  evidenceCount: number;
+}) {
+  console.info(
+    "[ai:artifact]",
+    JSON.stringify({
+      event: "artifact_generation_started",
+      notebookId,
+      artifactType,
+      languageCode: language,
+      evidenceCount
+    })
+  );
+}
+
+function logArtifactGenerationComplete({
+  notebookId,
+  artifactType,
+  language
+}: {
+  notebookId: string;
+  artifactType: ArtifactType;
+  language: LanguageCode;
+}) {
+  console.info(
+    "[ai:artifact]",
+    JSON.stringify({
+      event: "artifact_generation_complete",
+      notebookId,
+      artifactType,
+      languageCode: language
+    })
+  );
+}
+
+function buildArtifactRetrievalQuery(artifactType: ArtifactType) {
+  switch (artifactType) {
+    case "OUTLINE":
+      return "Create a structured outline from the main lecture topics and transitions.";
+    case "SUMMARY_SHORT":
+      return "Summarize the most important lecture ideas concisely.";
+    case "SUMMARY_MEDIUM":
+      return "Summarize the lecture with deeper context, examples, and key details.";
+    case "STUDY_GUIDE":
+      return "Find the main concepts, definitions, examples, and review points in this lecture.";
+    case "FLASHCARDS":
+      return "Find important concepts, definitions, comparisons, and facts for flashcards.";
+    case "QUIZ":
+      return "Find important concepts, distinctions, and facts suitable for quiz questions.";
+    case "MIND_MAP":
+      return "Find the main concepts and relationships between ideas in this lecture.";
+  }
+}
+
+function getArtifactRetrievalTopK(artifactType: ArtifactType) {
+  return artifactType === "SUMMARY_SHORT" ? 8 : 16;
+}
+
+function toRetrievalSource(retrievalMode: string) {
+  return retrievalMode === "azure_hybrid"
+    ? "hybrid_search"
+    : "local_lexical_fallback";
 }
 
 async function runAgentForArtifact(

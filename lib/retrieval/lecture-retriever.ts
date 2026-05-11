@@ -178,6 +178,12 @@ export async function retrieveLectureContext({
 
       if (chunks.length > 0) {
         const capped = capContextCharacters(chunks);
+        logRetrievalSourceSelected({
+          notebookId,
+          source: "hybrid_search",
+          indexedSegmentCount,
+          fallbackReason: null
+        });
 
         return {
           ok: true,
@@ -259,6 +265,12 @@ export async function retrieveLectureContext({
   }
 
   const capped = capContextCharacters(chunks);
+  logRetrievalSourceSelected({
+    notebookId,
+    source: "local_lexical_fallback",
+    indexedSegmentCount,
+    fallbackReason
+  });
 
   return {
     ok: true,
@@ -411,4 +423,27 @@ function getSafeRetrievalErrorDetails(error: unknown) {
     code: "UNKNOWN",
     message: error instanceof Error ? error.message.slice(0, 300) : "unknown"
   };
+}
+
+function logRetrievalSourceSelected({
+  notebookId,
+  source,
+  indexedSegmentCount,
+  fallbackReason
+}: {
+  notebookId: string;
+  source: "hybrid_search" | "local_lexical_fallback";
+  indexedSegmentCount: number;
+  fallbackReason: string | null;
+}) {
+  console.info(
+    "[retrieval]",
+    JSON.stringify({
+      event: "retrieval_source_selected",
+      notebookId,
+      source,
+      indexedSegmentCount,
+      fallbackReason
+    })
+  );
 }

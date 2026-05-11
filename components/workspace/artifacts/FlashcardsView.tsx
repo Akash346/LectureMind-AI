@@ -45,6 +45,8 @@ export function FlashcardsView({ data }: { data: unknown }) {
 
   const card = cards[index];
   const progress = cards.length > 0 ? ((index + 1) / cards.length) * 100 : 0;
+  const frontText = card?.question ?? card?.front ?? "";
+  const backText = card?.answer ?? card?.back ?? "";
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -97,21 +99,29 @@ export function FlashcardsView({ data }: { data: unknown }) {
         <button
           type="button"
           onClick={() => setFlipped((current) => !current)}
-          className="flashcard-scene aspect-[3/2] w-full max-w-[360px]"
+          className="flashcard-scene h-[300px] w-full max-w-[420px]"
           aria-label="Flip card"
         >
           <div className="flashcard-inner" data-flipped={flipped}>
-            <div className="flashcard-face rounded-3xl bg-lm-indigo p-6 text-lm-paper shadow-xl">
-              <div className="text-xs font-medium opacity-80">Question</div>
-              <div className="flex h-full items-center justify-center pb-6 text-center font-space-grotesk text-[22px] font-medium leading-tight">
-                {card.question ?? card.front}
+            <div className="flashcard-face flex flex-col overflow-hidden rounded-3xl bg-lm-indigo p-6 text-lm-paper shadow-xl">
+              <div className="shrink-0 text-xs font-medium opacity-80">
+                Question
+              </div>
+              <div className="min-h-0 flex flex-1 items-center justify-center py-4 text-center font-space-grotesk text-xl font-medium leading-tight">
+                <span className="block max-h-full overflow-y-auto break-words px-1 [overflow-wrap:anywhere]">
+                  {frontText}
+                </span>
               </div>
             </div>
 
-            <div className="flashcard-face flashcard-back rounded-3xl bg-lm-amber p-6 text-lm-ink shadow-xl">
-              <div className="text-xs font-medium opacity-80">Answer</div>
-              <div className="flex h-full items-center justify-center pb-8 text-center text-[17px] leading-7">
-                {card.answer ?? card.back}
+            <div className="flashcard-face flashcard-back flex flex-col overflow-hidden rounded-3xl bg-lm-amber p-6 text-lm-ink shadow-xl">
+              <div className="shrink-0 text-xs font-medium opacity-80">
+                Answer
+              </div>
+              <div className="min-h-0 flex flex-1 items-center justify-center py-5 pb-10 text-center text-base leading-7">
+                <span className="block max-h-full overflow-y-auto break-words px-1 [overflow-wrap:anywhere]">
+                  {backText}
+                </span>
               </div>
               <div className="absolute bottom-4 right-4">
                 <CitationChip seconds={getSeconds(card)} />

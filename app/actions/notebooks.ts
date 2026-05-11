@@ -63,6 +63,15 @@ export async function createNotebook(
     notebookId: notebook.id,
     notebookOwnerId: user.id
   });
+  console.info(
+    "[notebook]",
+    JSON.stringify({
+      event: "notebook_created",
+      notebookId: notebook.id,
+      sourceType: "YOUTUBE",
+      languageCode: parsed.data.language
+    })
+  );
 
   revalidatePath("/dashboard");
   redirect(`/chats/${notebook.id}`);

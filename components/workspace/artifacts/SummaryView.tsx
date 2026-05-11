@@ -79,7 +79,7 @@ function getValue(record: Record<string, unknown>, key: string) {
   return record[key];
 }
 
-function getSummaryText(data: unknown, key: "short" | "medium" | "full") {
+function getSummaryText(data: unknown, key: "short" | "medium") {
   if (!isRecord(data)) return "";
   if (key === "short") {
     return renderShort(
@@ -97,20 +97,12 @@ function getSummaryText(data: unknown, key: "short" | "medium" | "full") {
         getValue(data, "summary5")
     );
   }
-  return (
-    renderMedium(
-      getValue(data, "full") ??
-        getValue(data, "long") ??
-        getValue(data, "summary")
-    ) ||
-    renderMedium(getValue(data, "medium")) ||
-    renderShort(getValue(data, "short"))
-  );
+  return "";
 }
 
 export function SummaryView({ data }: { data: unknown }) {
   const [active, setActive] = React.useState("short");
-  const text = getSummaryText(data, active as "short" | "medium" | "full");
+  const text = getSummaryText(data, active as "short" | "medium");
 
   async function copyText() {
     await navigator.clipboard.writeText(text);
@@ -120,10 +112,9 @@ export function SummaryView({ data }: { data: unknown }) {
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-border/70 p-4">
         <Tabs value={active} onValueChange={setActive}>
-          <TabsList className="grid grid-cols-3 rounded-xl">
+          <TabsList className="grid grid-cols-2 rounded-xl">
             <TabsTrigger value="short">90 seconds</TabsTrigger>
             <TabsTrigger value="medium">5 minutes</TabsTrigger>
-            <TabsTrigger value="full">Full</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -151,9 +142,6 @@ export function SummaryView({ data }: { data: unknown }) {
         </TabsContent>
         <TabsContent value="medium" className="mt-0 h-full overflow-y-auto p-5">
           <CitedMarkdown content={getSummaryText(data, "medium")} />
-        </TabsContent>
-        <TabsContent value="full" className="mt-0 h-full overflow-y-auto p-5">
-          <CitedMarkdown content={getSummaryText(data, "full")} />
         </TabsContent>
       </Tabs>
     </div>

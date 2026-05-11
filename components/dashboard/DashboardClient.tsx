@@ -71,6 +71,14 @@ export function DashboardClient({
     }
   }, [demoChats.length, isDemo, startDemo]);
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("new") === "1") {
+      setSheetOpen(true);
+    }
+  }, []);
+
   const chats = isDemo ? demoChats : initialChats;
   const filteredChats = chats.filter((chat) =>
     chat.title.toLowerCase().includes(query.toLowerCase())

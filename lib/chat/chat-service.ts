@@ -191,6 +191,16 @@ export async function answerNotebookChat({
       searchIndexName: retrieval.debug.searchIndexName,
       indexEnvSource: retrieval.debug.indexEnvSource
     });
+    logChatEvent("chat_retrieval", {
+      notebookId,
+      queryLength: request.message.length,
+      source:
+        retrieval.retrievalMode === "azure_hybrid"
+          ? "hybrid_search"
+          : "local_lexical_fallback",
+      resultCount: retrieval.chunks.length,
+      fallbackReason: retrieval.fallbackReason
+    });
 
     if (!isAzureOpenAIConfigured()) {
       return chatFailure(

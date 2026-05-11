@@ -151,6 +151,9 @@
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .flashcard-back {

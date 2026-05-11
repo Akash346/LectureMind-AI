@@ -68,6 +68,21 @@ export async function POST(
 
   const language = normalizeArtifactLanguage(notebook.language);
   const requestedTypes = getRequestedTypes(parsedBody.data);
+  for (const artifactType of requestedTypes) {
+    const variant = getSummaryVariant(artifactType);
+
+    if (variant) {
+      logSummaryVariant("summary_variant_selected", {
+        notebookId: notebook.id,
+        variant
+      });
+      logSummaryVariant("summary_variant_generate", {
+        notebookId: notebook.id,
+        variant,
+        artifactType
+      });
+    }
+  }
 
   try {
     if (parsedBody.data.mode === "async") {
@@ -165,4 +180,29 @@ function getRequestedTypes(body: z.infer<typeof bodySchema>) {
   }
 
   return [artifactTypeSchema.parse(body.artifactType)];
+}
+
+function getSummaryVariant(artifactType: string) {
+  if (artifactType === "SUMMARY_SHORT") {
+    return "short";
+  }
+
+  if (artifactType === "SUMMARY_MEDIUM") {
+    return "medium";
+  }
+
+  return null;
+}
+
+function logSummaryVariant(
+  event: "summary_variant_selected" | "summary_variant_generate",
+  fields: Record<string, unknown>
+) {
+  console.info(
+    "[ai:summary]",
+    JSON.stringify({
+      event,
+      ...fields
+    })
+  );
 }

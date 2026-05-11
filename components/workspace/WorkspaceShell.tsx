@@ -47,7 +47,10 @@ export function WorkspaceShell({
   const [status, setStatus] = React.useState(() =>
     normalizeWorkspaceStatus(activeChat, isDemo)
   );
+  const [indexStatus, setIndexStatus] =
+    React.useState<WorkspaceIndexStatus | null>(null);
   const processStartedRef = React.useRef(false);
+  const indexStartedRef = React.useRef(false);
   const workspaceLayout = useDefaultLayout({
     id: "workspace-layout-v2",
     panelIds: ["left", "center"]
@@ -55,7 +58,9 @@ export function WorkspaceShell({
 
   React.useEffect(() => {
     setStatus(normalizeWorkspaceStatus(activeChat, isDemo));
+    setIndexStatus(null);
     processStartedRef.current = false;
+    indexStartedRef.current = false;
   }, [activeChat, isDemo]);
 
   const refreshStatus = React.useCallback(async () => {
@@ -73,6 +78,19 @@ export function WorkspaceShell({
       ...payload,
       language: current.language
     }));
+  }, [activeChat.id, isDemo]);
+
+  const refreshIndexStatus = React.useCallback(async () => {
+    if (isDemo) return;
+
+    const response = await fetch(`/api/notebooks/${activeChat.id}/index/status`, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) return;
+
+    const payload = (await response.json()) as WorkspaceIndexStatus;
+    setIndexStatus(payload);
   }, [activeChat.id, isDemo]);
 
   React.useEffect(() => {
@@ -99,6 +117,56 @@ export function WorkspaceShell({
 
     return () => window.clearInterval(interval);
   }, [isDemo, refreshStatus, status.status]);
+
+  React.useEffect(() => {
+    if (isDemo || status.status !== "READY" || status.segmentCount <= 0) {
+      return;
+    }
+
+    void refreshIndexStatus();
+  }, [isDemo, refreshIndexStatus, status.segmentCount, status.status]);
+
+  React.useEffect(() => {
+    if (
+      isDemo ||
+      !indexStatus?.shouldIndex ||
+      indexStartedRef.current ||
+      status.status !== "READY"
+    ) {
+      return;
+    }
+
+    indexStartedRef.current = true;
+    void fetch(`/api/notebooks/${activeChat.id}/index`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ force: false })
+    }).finally(() => {
+      void refreshIndexStatus();
+    });
+  }, [
+    activeChat.id,
+    indexStatus?.shouldIndex,
+    isDemo,
+    refreshIndexStatus,
+    status.status
+  ]);
+
+  React.useEffect(() => {
+    if (
+      isDemo ||
+      !indexStatus ||
+      !["QUEUED", "RUNNING"].includes(indexStatus.status)
+    ) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      void refreshIndexStatus();
+    }, 2500);
+
+    return () => window.clearInterval(interval);
+  }, [indexStatus, isDemo, refreshIndexStatus]);
 
   const videoUrl = status.videoId
     ? `https://www.youtube.com/watch?v=${status.videoId}`
@@ -175,6 +243,14 @@ type WorkspaceStatus = {
   errorMessage: string | null;
   segmentCount: number;
   language: string;
+};
+
+type WorkspaceIndexStatus = {
+  status: string;
+  shouldIndex: boolean;
+  indexedSegmentCount: number;
+  totalEvidenceSegments: number;
+  fallbackReason: string | null;
 };
 
 function normalizeWorkspaceStatus(

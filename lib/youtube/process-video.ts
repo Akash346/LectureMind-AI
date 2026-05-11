@@ -11,7 +11,14 @@ import {
   VideoProcessingError,
   type VideoErrorType
 } from "@/lib/video-errors";
+import { isEmbeddingConfigured } from "@/lib/ai/embeddings";
+import { enqueueJob } from "@/lib/jobs/job-store";
+import { runJobSoon } from "@/lib/jobs/job-runner";
 import { prisma } from "@/lib/prisma";
+import {
+  getSearchIndexName,
+  isSearchConfigured
+} from "@/lib/search/search-client";
 import {
   processWithWorker,
   type WorkerProcessResult
@@ -279,6 +286,20 @@ export async function processNotebookVideo(
       engine: result.engine,
       step: "Ready",
       durationMs: Date.now() - startedAt,
+      segmentCount: evidenceRows.length
+    });
+    console.info(
+      "[youtube:process]",
+      JSON.stringify({
+        event: "transcript_segments_ready",
+        notebookId,
+        segmentCount: evidenceRows.length
+      })
+    );
+
+    await enqueueIndexEvidenceAfterTranscript({
+      notebookId,
+      userId,
       segmentCount: evidenceRows.length
     });
 
@@ -707,6 +728,89 @@ async function updateJob(
   });
 }
 
+async function enqueueIndexEvidenceAfterTranscript({
+  notebookId,
+  userId,
+  segmentCount
+}: {
+  notebookId: string;
+  userId: string;
+  segmentCount: number;
+}) {
+  if (segmentCount === 0) {
+    logIndexQueueEvent("index_evidence_not_enqueued", {
+      notebookId,
+      fallbackReason: "no_segments"
+    });
+    return;
+  }
+
+  const searchConfigured = isSearchConfigured();
+  const embeddingsConfigured = isEmbeddingConfigured();
+
+  if (!searchConfigured || !embeddingsConfigured) {
+    logIndexQueueEvent("index_evidence_not_enqueued", {
+      notebookId,
+      segmentCount,
+      indexName: getSearchIndexName(),
+      searchConfigured,
+      embeddingsConfigured,
+      fallbackReason: !searchConfigured
+        ? "search_not_configured"
+        : "embeddings_not_configured"
+    });
+    return;
+  }
+
+  const existingJob = await prisma.job.findFirst({
+    where: {
+      notebookId,
+      userId,
+      type: "INDEX_EVIDENCE",
+      status: {
+        in: ["QUEUED", "RUNNING"]
+      }
+    },
+    orderBy: {
+      updatedAt: "desc"
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (existingJob) {
+    logIndexQueueEvent("index_evidence_enqueued", {
+      notebookId,
+      jobId: existingJob.id,
+      segmentCount,
+      reusedExistingJob: true
+    });
+    runJobSoon(existingJob.id);
+    return;
+  }
+
+  const job = await enqueueJob({
+    notebookId,
+    userId,
+    type: "INDEX_EVIDENCE",
+    currentStep: "Queued evidence indexing",
+    maxAttempts: 2,
+    metadata: {
+      force: true,
+      source: "youtube_ingestion",
+      segmentCount
+    } satisfies Prisma.InputJsonValue
+  });
+
+  logIndexQueueEvent("index_evidence_enqueued", {
+    notebookId,
+    jobId: job.id,
+    segmentCount
+  });
+  runJobSoon(job.id);
+}
+
 function toRecord(value: Prisma.JsonValue | null) {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, Prisma.JsonValue>)
@@ -719,6 +823,19 @@ function logIngestionEvent(
 ) {
   console.info(
     "[youtube:process]",
+    JSON.stringify({
+      event,
+      ...fields
+    })
+  );
+}
+
+function logIndexQueueEvent(
+  event: string,
+  fields: Record<string, unknown>
+) {
+  console.info(
+    "[index]",
     JSON.stringify({
       event,
       ...fields

@@ -1,6 +1,6 @@
 # LectureMind AI
 
-LectureMind AI is a grounded lecture study workspace. Phase 5 keeps the working Phase 2/3 YouTube ingestion and Phase 4 artifact generation, then adds durable jobs, embeddings, Azure AI Search indexing, safe retrieval fallback, and source-grounded chat.
+LectureMind AI is a grounded lecture study workspace. Phase 6 keeps the working Phase 2/3 YouTube ingestion, Phase 4 artifact generation, and Phase 5 retrieval backbone, then rewires the active workspace so ingestion, Azure AI Search indexing, chat, artifacts, citations, and the refreshed study UI work together end to end.
 
 Audio/video overviews, reports, slide decks, and Canvas/faculty/provost workflows are still later phases.
 
@@ -8,7 +8,7 @@ Audio/video overviews, reports, slide decks, and Canvas/faculty/provost workflow
 
 - Next.js App Router, TypeScript, Tailwind CSS
 - shadcn/ui-style components with Radix primitives
-- Framer Motion for pane transitions
+- Framer Motion for pane transitions and artifact loading states
 - Prisma ORM with PostgreSQL
 - Auth.js / NextAuth Google provider
 - Zod validation
@@ -16,7 +16,7 @@ Audio/video overviews, reports, slide decks, and Canvas/faculty/provost workflow
 - Optional FastAPI worker with yt-dlp, ffmpeg audio prep, and Azure Speech fallback
 - Azure OpenAI artifact generation with Zod validation and verifier checks
 - Azure OpenAI embeddings and Azure AI Search hybrid retrieval
-- Source-grounded chat with deterministic citation verification
+- Source-grounded chat and artifacts with deterministic citation verification
 - Zustand for workspace pane state
 
 ## Local Setup
@@ -220,6 +220,37 @@ Artifact generation now supports `mode: "async"` through PostgreSQL-backed jobs 
 
 Production scaling path: Next.js routes should validate ownership and create `QUEUED` `Job` rows, an Azure Container Apps worker should poll those jobs, run the existing processors for ingestion/artifacts/indexing, and the UI should keep polling job/status endpoints. The current local path processes jobs inline or route-triggered for fast development feedback, but the processor boundary is already separated.
 
+## Phase 6 Workspace Rewiring
+
+Phase 6 restores the active workspace around the intended Azure backed pipeline:
+
+```text
+YouTube link
+  -> Notebook PENDING
+  -> workspace starts ingestion
+  -> transcript evidence stored
+  -> INDEX_EVIDENCE enqueued automatically
+  -> Azure Search batches uploaded when configured
+  -> chat and artifacts use shared retrieval
+  -> local lexical fallback only when indexing is pending or unavailable
+```
+
+Workspace changes:
+
+- The active chat workspace now checks indexing status and starts indexing when a ready notebook still needs it.
+- YouTube ingestion now enqueues `INDEX_EVIDENCE` after transcript segments are stored.
+- Chat retrieval logs the selected retrieval source and uses Azure hybrid retrieval when indexed evidence exists.
+- Artifact generation now uses the same retrieval service as chat instead of bypassing Azure with raw transcript compilation.
+- Summary shows the two persisted variants that exist in the schema: `90 seconds` maps to `SUMMARY_SHORT`, and `5 minutes` maps to `SUMMARY_MEDIUM`.
+- The unsupported `Full` tab was removed because there is no `SUMMARY_FULL` or `SUMMARY_LONG` artifact type in the current schema.
+- Citation chips in chat and artifacts seek the embedded YouTube player and resume playback.
+- Flashcards keep long multilingual content inside the card.
+- Artifact loading keeps staged status text without the horizontal progress bar.
+- The left rail `+` opens the New Chat modal on the dashboard.
+- The workspace profile menu links to Dashboard and Sign out.
+
+Safe logs added in this phase include notebook creation, transcript readiness, indexing enqueue/start, Azure Search index readiness, upload batches, upload completion, retrieval source selection, chat retrieval, artifact retrieval, and summary variant generation/fetch events. Logs do not include secrets, raw transcripts, tokens, or user email.
+
 ## Transcript Limitations
 
 - Node ingestion still only uses available YouTube captions or auto-captions.
@@ -255,7 +286,7 @@ Production scaling path: Next.js routes should validate ownership and create `QU
 - Temporarily remove Azure AI Search env vars and confirm chat shows local retrieval fallback.
 - Temporarily remove Azure OpenAI chat env vars and confirm chat returns a safe not-configured error.
 
-More implementation details live in [docs/phase-2-youtube-ingestion.md](docs/phase-2-youtube-ingestion.md), [docs/phase-3-worker-asr-fallback.md](docs/phase-3-worker-asr-fallback.md), [docs/phase-4-ai-artifact-generation.md](docs/phase-4-ai-artifact-generation.md), and [docs/phase-5-retrieval-chat.md](docs/phase-5-retrieval-chat.md).
+More implementation details live in [docs/phase-2-youtube-ingestion.md](docs/phase-2-youtube-ingestion.md), [docs/phase-3-worker-asr-fallback.md](docs/phase-3-worker-asr-fallback.md), [docs/phase-4-ai-artifact-generation.md](docs/phase-4-ai-artifact-generation.md), [docs/phase-5-retrieval-chat.md](docs/phase-5-retrieval-chat.md), and [docs/phase-6-workspace-rewiring.md](docs/phase-6-workspace-rewiring.md).
 
 ## Auth Troubleshooting
 
@@ -323,8 +354,11 @@ npm run build
 - Source-grounded chat API and UI with verified citations
 - Citation chips in chat seek the YouTube player
 - Azure AI Search indexing path for evidence segments
+- Automatic evidence indexing after YouTube ingestion when Azure Search is configured
+- Shared retrieval path for chat and study artifacts
 - Local lexical retrieval fallback when Search or embeddings are missing
 - PostgreSQL-backed jobs for async artifact generation and indexing
+- Rewired workspace shell with artifact dock, side panel, video seek citations, New Chat shortcut, and profile menu
 - Configure Chat modal that saves user preferences
 
 ## Later Phases

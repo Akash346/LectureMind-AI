@@ -156,6 +156,13 @@ export async function indexEvidenceSegments({
   let indexedCount = 0;
   let failedCount = invalidSegments.length;
 
+  logIndexEvent("index_evidence_started", {
+    notebookId,
+    segmentCount: indexableSegments.length,
+    totalSegmentCount: notebook.evidenceSegments.length,
+    batchSize: INDEX_BATCH_SIZE
+  });
+
   if (invalidSegments.length > 0) {
     await markSegmentsFailed(
       invalidSegments,
@@ -222,6 +229,10 @@ export async function indexEvidenceSegments({
       reused: ensureResult.reused,
       embeddingDimensionsExpected,
       embeddingDimensionsActual
+    });
+    logIndexEvent("azure_search_index_ready", {
+      indexName,
+      dimensions: embeddingDimensionsActual
     });
   } catch (error) {
     const failure = normalizeIndexingError(error, {
@@ -360,6 +371,11 @@ export async function indexEvidenceSegments({
       embeddingDimensionsExpected,
       embeddingDimensionsActual
     });
+    logIndexEvent("azure_search_upload_batch", {
+      notebookId,
+      batchNumber: Math.floor(batchStart / INDEX_BATCH_SIZE) + 1,
+      documentCount: documents.length
+    });
 
     let failedDocumentCount = 0;
 
@@ -446,6 +462,10 @@ export async function indexEvidenceSegments({
         embeddingDimensionsExpected,
         embeddingDimensionsActual
       });
+      logIndexEvent("notebook_index_status_updated", {
+        notebookId,
+        indexedSegmentCount: indexedCount
+      });
     } catch (error) {
       const failure = normalizeIndexingError(error, {
         phase: "db_update",
@@ -466,6 +486,15 @@ export async function indexEvidenceSegments({
       });
     }
   }
+
+  logIndexEvent("azure_search_upload_complete", {
+    notebookId,
+    uploadedCount: indexedCount
+  });
+  logIndexEvent("notebook_index_status_updated", {
+    notebookId,
+    indexedSegmentCount: indexedCount
+  });
 
   return {
     indexedCount,

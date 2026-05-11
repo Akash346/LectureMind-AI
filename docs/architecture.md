@@ -5,8 +5,8 @@ YouTube URL
   -> Notebook row
   -> ingestion job
   -> EvidenceSegment rows
-  -> optional Azure AI Search indexing
-  -> artifacts and chat use the same grounded evidence
+  -> automatic Azure AI Search indexing when configured
+  -> artifacts and chat use the same grounded retrieval layer
 ```
 
 ## Core Boundaries
@@ -46,6 +46,24 @@ workspace polls /api/notebooks/[id]/index/status
 ```
 
 No full Azure Queue is required for this phase. A managed queue can be inserted later between the route and worker if job volume requires it.
+
+## Phase 6 Active Workspace
+
+The active `/chats/[chatId]` workspace now owns the same pipeline described in the older source/studio shell:
+
+```text
+WorkspaceShell
+  -> POST /api/notebooks/[id]/process while PENDING
+  -> poll /api/notebooks/[id]/status
+  -> poll /api/notebooks/[id]/index/status when READY
+  -> POST /api/notebooks/[id]/index when indexing is needed
+  -> ArtifactDock creates GENERATE_ARTIFACTS jobs
+  -> ArtifactPanel renders cached or generated results
+```
+
+YouTube ingestion also enqueues `INDEX_EVIDENCE` after transcript rows are saved, so indexing does not depend only on the browser staying open. The route-triggered workspace check remains useful for older ready notebooks that have evidence but no indexed rows.
+
+Chat and artifacts now share `lib/retrieval/lecture-retriever.ts`. Azure hybrid retrieval is selected only when Search is configured, embeddings are configured, and indexed evidence rows exist. Otherwise both chat and artifacts use the same local lexical fallback over the notebook's own `EvidenceSegment` rows.
 
 ## Retrieval Safety
 

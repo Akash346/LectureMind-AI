@@ -47,6 +47,25 @@ export type EvidencePacket = {
   maxEvidenceTokensEstimate: number;
 };
 
+export type RetrievedEvidenceChunkForPacket = {
+  evidenceSegmentId: string;
+  startSec: number;
+  endSec: number;
+  label?: string;
+  text: string;
+  source?: string;
+};
+
+export type EvidencePacketNotebookInput = {
+  id: string;
+  title: string;
+  videoId: string | null;
+  videoTitle: string | null;
+  durationSec: number | null;
+  sourceUrl: string;
+  evidenceSourceType?: string | null;
+};
+
 export async function compileEvidenceForArtifact(
   notebookId: string,
   userId: string,
@@ -127,6 +146,62 @@ export async function compileEvidenceForArtifact(
       totalCharacters,
       estimatedTokens,
       durationSec: notebook?.durationSec ?? null,
+      mode
+    },
+    preferredLanguage,
+    artifactType,
+    maxEvidenceTokensEstimate: MAX_MODEL_EVIDENCE_TOKENS
+  };
+}
+
+export function compileEvidencePacketFromChunks({
+  notebook,
+  chunks,
+  artifactType,
+  preferredLanguage
+}: {
+  notebook: EvidencePacketNotebookInput;
+  chunks: RetrievedEvidenceChunkForPacket[];
+  artifactType: ArtifactType;
+  preferredLanguage: LanguageCode;
+}): EvidencePacket {
+  const evidenceSegments = chunks.map((chunk, index) => ({
+    id: chunk.evidenceSegmentId,
+    citationId: `C${index + 1}`,
+    startSec: chunk.startSec,
+    endSec: chunk.endSec,
+    label: chunk.label || formatTimestamp(chunk.startSec),
+    text: chunk.text
+  }));
+  const totalCharacters = evidenceSegments.reduce(
+    (total, segment) => total + segment.text.length,
+    0
+  );
+  const estimatedTokens = estimateTokens(
+    evidenceSegments.map((segment) => segment.text).join(" ")
+  );
+  const mode =
+    estimatedTokens <= SHORT_EVIDENCE_TOKEN_LIMIT ? "segments" : "windows";
+
+  return {
+    notebook: {
+      id: notebook.id,
+      title: notebook.title,
+      videoId: notebook.videoId,
+      videoTitle: notebook.videoTitle,
+      durationSec: notebook.durationSec,
+      sourceUrl: notebook.sourceUrl,
+      evidenceSourceType:
+        notebook.evidenceSourceType ?? chunks[0]?.source ?? null
+    },
+    evidenceSegments,
+    evidenceWindows:
+      mode === "segments" ? [] : createEvidenceWindows(evidenceSegments),
+    transcriptStats: {
+      segmentCount: evidenceSegments.length,
+      totalCharacters,
+      estimatedTokens,
+      durationSec: notebook.durationSec,
       mode
     },
     preferredLanguage,

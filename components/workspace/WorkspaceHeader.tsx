@@ -3,10 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { LayoutDashboard } from "lucide-react";
 
+import { SignOutButton } from "@/components/auth-buttons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LMLogo } from "@/components/ui/brand";
 import { useDemoUiFlag } from "@/components/ui/brand/useDemoUiFlag";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 type WorkspaceHeaderProps = {
   title?: string;
@@ -37,7 +45,7 @@ export function WorkspaceHeader({ title, isDemo = false }: WorkspaceHeaderProps)
         ) : null}
         <ThemeToggle />
         {status === "authenticated" ? (
-          <Avatar
+          <ProfileMenu
             image={session?.user?.image}
             name={session?.user?.name}
           />
@@ -46,6 +54,37 @@ export function WorkspaceHeader({ title, isDemo = false }: WorkspaceHeaderProps)
         )}
       </div>
     </header>
+  );
+}
+
+function ProfileMenu({
+  image,
+  name
+}: {
+  image?: string | null;
+  name?: string | null;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-lm-indigo/40"
+          aria-label="Open profile menu"
+        >
+          <Avatar image={image} name={name} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4" />
+            Dashboard
+          </Link>
+        </DropdownMenuItem>
+        <SignOutButton />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

@@ -97,7 +97,7 @@ function normalizeData(type: ArtifactType, items: BackendArtifact[]) {
     return {
       short: shortSummary?.json ?? shortSummary?.data ?? null,
       medium: mediumSummary?.json ?? mediumSummary?.data ?? null,
-      full: mediumSummary?.json ?? mediumSummary?.data ?? null
+      full: null
     };
   }
 
