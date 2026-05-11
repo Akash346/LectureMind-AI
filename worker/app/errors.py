@@ -135,14 +135,18 @@ def classify_ytdlp_error(error: Exception) -> WorkerProcessingError:
     message = str(error)
     normalized = message.lower()
 
+    if "not a bot" in normalized or "confirm you" in normalized:
+        return WorkerProcessingError("LOGIN_REQUIRED", message)
     if "private" in normalized:
         return WorkerProcessingError("PRIVATE_VIDEO", message)
     if "members-only" in normalized or "members only" in normalized:
         return WorkerProcessingError("MEMBERS_ONLY", message)
-    if "age" in normalized:
-        return WorkerProcessingError("AGE_RESTRICTED", message)
     if "sign in" in normalized or "login" in normalized:
         return WorkerProcessingError("LOGIN_REQUIRED", message)
+    if "age-restricted" in normalized or "age restricted" in normalized:
+        return WorkerProcessingError("AGE_RESTRICTED", message)
+    if "confirm your age" in normalized or "age verification" in normalized:
+        return WorkerProcessingError("AGE_RESTRICTED", message)
     if "country" in normalized or "region" in normalized or "blocked" in normalized:
         return WorkerProcessingError("REGION_BLOCKED", message)
     if "live event" in normalized or "live stream" in normalized or "premieres" in normalized:

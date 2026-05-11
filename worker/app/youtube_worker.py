@@ -86,11 +86,7 @@ def process_youtube(
             f"Duration {metadata.durationSec}s exceeds {payload.maxDurationSeconds}s.",
         )
 
-    if int(info.get("age_limit") or 0) >= 18:
-        raise WorkerProcessingError(
-            "AGE_RESTRICTED",
-            f"yt-dlp reported age_limit={info.get('age_limit')}.",
-        )
+    age_restricted_hint = int(info.get("age_limit") or 0) >= 18
 
     captions = extract_caption_segments(
         info=info,
@@ -112,6 +108,7 @@ def process_youtube(
                 "autoCaptionLanguages": sorted(
                     (info.get("automatic_captions") or {}).keys()
                 ),
+                "ageRestrictedHint": age_restricted_hint,
             },
         )
         return WorkerSuccessResponse(
@@ -121,6 +118,11 @@ def process_youtube(
         )
 
     if not payload.allowAsrFallback:
+        if age_restricted_hint:
+            raise WorkerProcessingError(
+                "AGE_RESTRICTED",
+                f"yt-dlp reported age_limit={info.get('age_limit')}.",
+            )
         raise WorkerProcessingError(
             "NO_CAPTIONS",
             "No usable manual or automatic caption track was found.",
@@ -153,7 +155,10 @@ def process_youtube(
         asrUsed=True,
         segmentCount=len(asr_segments),
         requestId=request_id,
-        details={"durationMs": now_ms() - started},
+        details={
+            "durationMs": now_ms() - started,
+            "ageRestrictedHint": age_restricted_hint,
+        },
     )
     return WorkerSuccessResponse(
         metadata=metadata,

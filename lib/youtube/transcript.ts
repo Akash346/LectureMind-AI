@@ -75,11 +75,29 @@ async function fetchDirectYouTubeTranscript(
   preferredLanguage: string
 ) {
   const playerResponse = await fetchYouTubePlayerResponse(videoId);
-  assertPlayable(playerResponse);
+  let playabilityError: VideoProcessingError | null = null;
+
+  try {
+    assertPlayable(playerResponse);
+  } catch (error) {
+    if (error instanceof VideoProcessingError) {
+      playabilityError = error;
+      console.warn("[youtube:transcript] Continuing despite playability warning", {
+        videoId,
+        errorType: error.type
+      });
+    } else {
+      throw error;
+    }
+  }
 
   const tracks = getCaptionTracks(playerResponse);
 
   if (tracks.length === 0) {
+    if (playabilityError) {
+      throw playabilityError;
+    }
+
     throw new VideoProcessingError({
       type: "NO_CAPTIONS",
       technicalMessage: "Player response did not include caption tracks."
@@ -100,6 +118,10 @@ async function fetchDirectYouTubeTranscript(
   const normalized = normalizeSegments(rawSegments, sourceType);
 
   if (normalized.length === 0) {
+    if (playabilityError) {
+      throw playabilityError;
+    }
+
     throw new VideoProcessingError({
       type: "TRANSCRIPT_UNAVAILABLE",
       technicalMessage: "Caption track was empty after normalization."

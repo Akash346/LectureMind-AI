@@ -294,7 +294,16 @@ export function createFallbackMetadata({
 }
 
 function shouldUseFallbackMetadata(type: VideoErrorType) {
-  return type === "NETWORK_ERROR" || type === "RATE_LIMITED";
+  return (
+    type === "NETWORK_ERROR" ||
+    type === "RATE_LIMITED" ||
+    // Production YouTube anti-bot or proxy gating can report these states
+    // for otherwise public videos. Continue with fallback metadata and let
+    // transcript extraction decide with real caption fetch attempts.
+    type === "LOGIN_REQUIRED" ||
+    type === "VIDEO_UNAVAILABLE" ||
+    type === "AGE_RESTRICTED"
+  );
 }
 
 function isExplicitAgeVerification(status: string, normalizedReason: string) {
