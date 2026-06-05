@@ -13,3 +13,6 @@ tree.txt
 worker/cookies.txt
 cookies.txt
 *.cookies.txt
+
+# Private Codex application answers — keep local, do not publish
+docs/codex-open-source-application.md
